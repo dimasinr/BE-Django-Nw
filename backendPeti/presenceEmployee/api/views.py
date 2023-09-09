@@ -133,16 +133,17 @@ class PresenceAPIViewID(viewsets.ModelViewSet):
 
                 if 'ket' in data:
                     presence_obj.ket = data.get('ket')
+                    
                 if presence_obj.is_lock == False:
                     presence_obj.save()
                     create_log(action="create", message=f"Presensi {employee.name} pada tanggal {date} diubah oleh {request.user.name}")
-                    res = Response({'message' : 'Data berhasil disimpan'})
+                    res = Response({'message' : 'Data berhasil disimpan'}, status=status.HTTP_200_OK)
                 else:
-                    res = Response({'message' : 'Data tidak dapat diubah, karena sudah dikunci oleh hrd'})
+                    res = Response({'message' : 'Data tidak dapat diubah, karena sudah dikunci oleh hrd'}, status=status.HTTP_401_UNAUTHORIZED)
             else:
-                res = Response({'message' : 'Isikan data yang di perlukan'})
+                res = Response({'message' : 'Isikan data yang di perlukan'}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            res = Response({'message' : 'Anda bukan HR, untuk mengeditnya silahkan ke HR terlebih dahulu'})
+            res = Response({'message' : 'Anda bukan HR, untuk mengeditnya silahkan ke HR terlebih dahulu'}, status=status.HTTP_401_UNAUTHORIZED)
 
         return res
 
