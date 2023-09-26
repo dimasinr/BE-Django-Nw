@@ -207,7 +207,7 @@ class UserSearch(APIView):
 class EmployeeBirth(APIView):
     def get(self, request, month):
         try:
-            users = User.objects.filter(birth_date__month=month).order_by('birth_date__day')
+            users = User.objects.filter(birth_date__month=month, is_active=True).order_by('birth_date__day')
             serializer = UserBirthdaySerializers(users, many=True)
             return Response(serializer.data)
         except User.DoesNotExist:
@@ -220,7 +220,7 @@ class EmployeeContractEnd(APIView):
             current_month = today.month
             previous_month = (current_month - 1) if current_month != 1 else 12
             next_month = (current_month + 1) if current_month != 12 else 1
-            users = User.objects.filter( contract_end__month__range=(previous_month, next_month), contract_end__year=year)
+            users = User.objects.filter( contract_end__month__range=(previous_month, next_month), contract_end__year=year, is_active=True)
             serializer = UserContractSerializers(users, many=True)
             return Response(serializer.data)
         except User.DoesNotExist:

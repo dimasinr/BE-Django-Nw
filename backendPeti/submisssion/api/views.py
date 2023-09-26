@@ -321,16 +321,13 @@ class SubmissionAPIViewID(viewsets.ModelViewSet):
                             duration = (end_date - start_date).days + 1
                             working_dates = [start_date + timedelta(days=i) for i in range(duration)]
                             for working_date in working_dates:
-                                if not CalendarDashHRD.objects.filter(date=working_date).exists():
-                                    PresenceEmployee.objects.create(
-                                        employee=employees,
-                                        working_date=working_date,
-                                        ket=submission_obj.permission_type
-                                    )
-                            # for working_date in working_dates:
-                            #     PresenceEmployee.objects.create(employee=employees, working_date=working_date,
-                            #                                     ket=submission_obj.permission_type
-                            #                                 )
+                                if working_date.weekday() not in [5, 6]:  
+                                    if not CalendarDashHRD.objects.filter(date=working_date).exists():
+                                        PresenceEmployee.objects.create(
+                                            employee=employees,
+                                            working_date=working_date,
+                                            ket=submission_obj.permission_type
+                                        )
                             
                             users_obj = User.objects.get(id=data['employee'])
                             users_obj.sisa_cuti = int(users_obj.sisa_cuti) - int(submission_obj.jumlah_hari)
