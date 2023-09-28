@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 from dotenv import load_dotenv
-# from import_export.formats.base_formats import CSV, XLSX
+from import_export.formats.base_formats import CSV, XLSX
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -30,7 +30,7 @@ SECRET_KEY = '&+lm2yqpkmfd%6#vdw2_2gpbkoyvt5-_lj2bb$9@@wy_w%5#3x'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# IMPORT_FORMATS = [CSV, XLSX]
+IMPORT_FORMATS = [CSV, XLSX]
 
 ALLOWED_HOSTS = ['*']
 
@@ -85,6 +85,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",    
+    'allauth.account.middleware.AccountMiddleware',  # Tambahkan baris ini
 ]
 
 ROOT_URLCONF = 'backendPeti.urls'
