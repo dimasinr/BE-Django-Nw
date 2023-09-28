@@ -152,7 +152,7 @@ def compress_image_square(image):
 class RandomFileName(object):
     def __init__(self, path):
         now = timezone.now()
-        re_path = "{}/{}/{}/{}/".format(f'{path}', now.year, now.month, now.day)
+        re_path = "{}/{}/{}/{}/".format(f'/media/{path}', now.year, now.month, now.day)
         self.path = os.path.join(re_path, "%s%s")
 
     def __call__(self, _, filename):
