@@ -1,15 +1,48 @@
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path, include
 from noteHR.api.views import get_cuti
 from userapp.api import views
-from attendanceEmployee.api.views import AttendanceAPISearch, TopAttendanceAPIView, AttendanceAPICompare, AttendanceAPIAnalisis
-from userapp.api.views import EmployeeBirth, UserSearch, UserSearchView, UserPasswordReset, ResetPassword, UserSearchContract, UserWorkHourAPIView, EmployeeContractEnd, ChangePasswordAPIView
+from attendanceEmployee.api.views import (
+    AttendanceAPISearch, 
+    TopAttendanceAPIView, 
+    AttendanceAPICompare, 
+    AttendanceAPIAnalisis
+)
+from userapp.api.views import (
+     EmployeeBirth, 
+     UserSearch, 
+     UserSearchView, 
+     UserPasswordReset, 
+     ResetPassword, 
+     UserSearchContract, 
+     UserWorkHourAPIView, 
+     EmployeeContractEnd, 
+     ChangePasswordAPIView, 
+     CertificatePieChartAPIView
+)
 from calendarDash.api.views import WeekTotals, post_delete_calendar
-from presenceEmployee.api.views import PresenceAPIAnalisis, PresenceAPICompare, PresenceSearch, TopPresenceAPIView, PresenceStatistikUser, StatistikPresenceInMonth, StatistikSubmissionEmployeeInMonth, PresenceWFHGenerate, PresenceLocked
-from submisssion.api.views import CalendarSubmissionView, SubmissionIzin, send_notification_api
+from presenceEmployee.api.views import (
+    PresenceAPIAnalisis, 
+    PresenceAPICompare, 
+    PresenceSearch, 
+    TopPresenceAPIView, 
+    PresenceStatistikUser, 
+    StatistikPresenceInMonth, 
+    StatistikSubmissionEmployeeInMonth, 
+    PresenceWFHGenerate, PresenceLocked
+)
+from submisssion.api.views import (
+    CalendarSubmissionView, 
+    SubmissionIzin, 
+    send_notification_api
+)
 from noteHR.api.views import post_delete_notes
 
-urlpatterns = [
+urlpatterns = (
+    [
+    path(r'^jet/', include('jet.urls', 'jet')),  # Django JET URLS
     path('admin/', admin.site.urls),
 
     path('api-auth/', include('rest_framework.urls')),
@@ -30,6 +63,7 @@ urlpatterns = [
     path('users/employee-total/<int:year>', views.UserTotal.as_view()),
     path('users/employee/cuti/<int:emp_id>/<int:year>/', get_cuti),
     path('users/employee/change-password/', ChangePasswordAPIView.as_view()),
+    path('employee/chart-pendidikan/', CertificatePieChartAPIView.as_view()),
 
     path('cuti/', include('saldoCuti.api.urls')),
 
@@ -71,3 +105,7 @@ urlpatterns = [
     path('api/send-notification/', send_notification_api, name='send_notification'),
 
 ]
+    + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+)

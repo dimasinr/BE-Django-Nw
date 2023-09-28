@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from allauth.account.adapter import get_adapter
 from backendPeti import settings
-from .models import Log, User, UserNotes, UserRoles, UserDivision
+from .models import Log, User, UserBank, UserBerkas, UserCertificate, UserContract, UserNotes, UserRoles, UserDivision
 from allauth.account.utils import setup_user_email
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_decode
@@ -66,8 +66,14 @@ class UserDetailsSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = User
-        fields = ('pk', 'employee_code', 'username', 'email', 'first_name', 'last_name', 'is_active', 'name', 'division', 'employee_joined', 'employee_ended', 'birth_date',
+        fields = ('pk', 'employee_code', 'username', 'email', 'first_name', 'last_name', 'is_active','alamat', 'status_kawin', 'no_hp', 'name', 'division', 'employee_joined', 'employee_ended', 'birth_date',
                     'sisa_cuti', 'roles', 'gender', 'religion', 'status_employee', 'contract_start', 'contract_end', 'contract_time')
+        # read_only_fields = ('email', )
+
+class UserSubSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'employee_code', 'username', 'name', 'division')
         # read_only_fields = ('email', )
 
 class UserContractSerializers(serializers.ModelSerializer):
@@ -105,6 +111,36 @@ class LogSerializer(serializers.ModelSerializer):
     class Meta:
         model = Log
         fields = '__all__'
+
+class UserBerkasSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserBerkas
+        fields = '__all__'
+
+class UserBankSerializer(serializers.ModelSerializer):
+    employee = UserSubSerializer(read_only=True)
+    class Meta:
+        model = UserBank
+        fields = '__all__'
+        depth = 1
+
+class UserCertificateSerializer(serializers.ModelSerializer):
+    employee = UserSubSerializer(read_only=True)
+    class Meta:
+        model = UserCertificate
+        fields = '__all__'
+        depth = 1
+
+class UserCertificatePieChartSerializer(serializers.Serializer):
+    certificate_level = serializers.CharField()
+    count = serializers.IntegerField()
+    
+class UserContractListSerializer(serializers.ModelSerializer):
+    employee = UserSubSerializer(read_only=True)
+    class Meta:
+        model = UserContract
+        fields = '__all__'
+        depth = 1
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)

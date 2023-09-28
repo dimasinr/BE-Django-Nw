@@ -135,4 +135,4 @@ class PresenceEmployee(models.Model):
         super(PresenceEmployee, self).save(*args, **kwargs)
  
     def __str__(self):  
-        return self.employee.name
+        return "{}".format(self.employee.name)

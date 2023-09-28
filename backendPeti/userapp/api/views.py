@@ -4,10 +4,26 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
 from django.db.models import Count, Q
+from bank.models import Bank
 from calendarDash.models import CalendarDashHRD
 from presenceEmployee.models import PresenceEmployee
-from userapp.serializer import ChangePasswordSerializer, UserBirthdaySerializers, UserDetailsSerializer, UserNotesSerializers, UserRolesSerializers, UserTotalDataIOSerializers, UserDivisionSerializers, ResetPasswordSerializer, EmailSerializer, UserContractSerializers
-from userapp.models import User, UserNotes, UserRoles, UserDivision
+from userapp.serializer import (
+    UserBankSerializer,
+    UserBerkasSerializer,
+    UserBirthdaySerializers,
+    UserCertificateSerializer,
+    UserContractListSerializer, 
+    UserDetailsSerializer, 
+    UserNotesSerializers, 
+    UserRolesSerializers, 
+    UserTotalDataIOSerializers, 
+    UserDivisionSerializers, 
+    ResetPasswordSerializer, 
+    EmailSerializer, 
+    UserContractSerializers,
+    UserCertificatePieChartSerializer
+)
+from userapp.models import User, UserBank, UserBerkas, UserCertificate, UserContract, UserNotes, UserRoles, UserDivision
 from django.db.models import Sum
 from attendanceEmployee.models import AttendanceEmployee
 from rest_framework import generics
@@ -385,3 +401,142 @@ class UserNotesSpecific(APIView):
             return Response({'message': 'Berhasil mengedit notes.'}, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'Tidak dapat mengakses API ini.'}, status=status.HTTP_403_FORBIDDEN)
+
+class UserBerkasAPIView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        employee = self.request.query_params.get('employee', None)
+        if employee:
+            user_berkas = UserBerkas.objects.get_or_create(employee=User.objects.get(id=employee))
+            serializer = UserBerkasSerializer(user_berkas, many=True)
+
+            return Response(serializer.data[0], status=status.HTTP_200_OK)
+        else: 
+            return Response({'message': 'Masukan params employee.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        # user = self.request.user
+        data = request.data
+        employee = data.get('employee')
+        nik = data.get('nik', None)
+        file_ktp = data.get('file_ktp', None)
+        no_npwp = data.get('no_npwp', None)
+        file_npwp = data.get('file_npwp', None)
+        no_bpjs = data.get('no_bpjs', None)
+        file_bpjs = data.get('file_bpjs', None)
+        user_berkas = UserBerkas.objects.get(employee=User.objects.get(id=employee))
+        user_berkas.nik = nik
+        user_berkas.berkas_ktp = file_ktp
+        user_berkas.no_npwp = no_npwp
+        user_berkas.berkas_npwp = file_npwp
+        user_berkas.no_bpjs = no_bpjs
+        user_berkas.berkas_bpjs = file_bpjs
+        user_berkas.save()
+        return Response({'message': 'Berhasil!',
+                         }, status=status.HTTP_201_CREATED)
+
+class UserBankAPIView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        employee = self.request.query_params.get('employee', None)
+        if employee:
+            user_bank = UserBank.objects.get_or_create(employee=User.objects.get(id=employee))
+            serializer = UserBankSerializer(user_bank, many=True)
+
+            return Response(serializer.data[0], status=status.HTTP_200_OK)
+        else: 
+            return Response({'message': 'Masukan params employee.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        # user = self.request.user
+        data = request.data
+        employee = data.get('employee')
+        nomor = data.get('nomor', None)
+        bank_id = data.get('bank_id', None)
+        user_bank = UserBank.objects.get(employee=User.objects.get(id=employee))
+        user_bank.nomor = nomor
+        user_bank.bank = Bank.objects.get(id=bank_id)
+        user_bank.save()
+        return Response({'message': 'Berhasil!',
+                         }, status=status.HTTP_201_CREATED)
+    
+class CertificatePieChartAPIView(APIView):
+    def get(self, request):
+        data = UserCertificate.objects.values('certificate_level').annotate(count=Count('certificate_level'))
+
+        # Menggunakan serializer untuk mengonversi data ke format yang sesuai
+        serializer = UserCertificatePieChartSerializer(data, many=True)
+
+        # Menghitung total jumlah sertifikat
+        total_certificates = UserCertificate.objects.count()
+
+        # Menghitung persentase
+        for item in serializer.data:
+            item['percentage'] = (item['count'] / total_certificates) * 100
+
+        return Response(serializer.data)
+
+class UserCertificateAPIView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        employee = self.request.query_params.get('employee', None)
+        if employee:
+            user_study = UserCertificate.objects.get_or_create(employee=User.objects.get(id=employee))
+            serializer = UserCertificateSerializer(user_study, many=True)
+
+            return Response(serializer.data[0], status=status.HTTP_200_OK)
+        else: 
+            return Response({'message': 'Masukan params employee.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        # user = self.request.user
+        data = request.data
+        employee = data.get('employee')
+        institute_name = data.get('institute_name', None)
+        study_program = data.get('study_program', None)
+        certificate_level = data.get('certificate_level', None)
+        foto = data.get('foto', None)
+        transkrip = data.get('transkrip', None)
+        user_study = UserCertificate.objects.get(employee=User.objects.get(id=employee))
+        user_study.institute_name = institute_name
+        user_study.study_program = study_program
+        user_study.certificate_level = certificate_level
+        user_study.foto = foto
+        user_study.transkrip = transkrip
+        user_study.save()
+        return Response({'message': 'Berhasil!',
+                         }, status=status.HTTP_201_CREATED)
+
+class UserContractAPIView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        employee = self.request.query_params.get('employee', None)
+        if employee:
+            user_contract = UserContract.objects.filter(employee=User.objects.get(id=employee))
+            serializer = UserContractListSerializer(user_contract, many=True)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else: 
+            return Response({'message': 'Masukan params employee.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        data = request.data
+        employee_id = data.get('employee')
+        contract_start = data.get('contract_start', None)
+        contract_end = data.get('contract_end', None)
+
+        try:
+            if contract_start is not None and contract_end is not None:
+                contract_start = datetime.strptime(contract_start, '%d-%m-%Y').strftime('%Y-%m-%d')
+                contract_end = datetime.strptime(contract_end, '%d-%m-%Y').strftime('%Y-%m-%d')
+
+                UserContract.objects.create(
+                    employee=User.objects.get(id=employee_id),
+                    contract_start=contract_start, contract_end= contract_end
+                )
+
+                return Response({'message': 'Berhasil!'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'message': 'Gagal! Lengkapi data kontrak terlebih dahulu'}, status=status.HTTP_403_FORBIDDEN)
+        except ValueError:
+            return Response({'message': 'Format tanggal tidak valid. Gunakan format DD-MM-YYYY.'}, status=status.HTTP_400_BAD_REQUEST)
