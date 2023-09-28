@@ -85,7 +85,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",    
-    'allauth.account.middleware.AccountMiddleware',  # Tambahkan baris ini
+    # 'allauth.account.middleware.AccountMiddleware',  # Tambahkan baris ini
 ]
 
 ROOT_URLCONF = 'backendPeti.urls'
@@ -191,6 +191,7 @@ USE_TZ = True
 STATIC_ROOT = BASE_DIR / '/static/'
 STATIC_URL = '/static/'
 
+MEDIA_URL= '/user/'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
