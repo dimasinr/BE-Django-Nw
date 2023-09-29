@@ -123,8 +123,8 @@ class UserCertificate(models.Model):
     institute_name = models.CharField(max_length=255, null=True, blank=True)
     study_program = models.CharField(max_length=255, null=True, blank=True)
     certificate_level = models.CharField(max_length=255, null=True, blank=True, default='SMA/SMK')
-    foto = models.ImageField(upload_to=RandomFileName('user/certificate/'), null=True, blank=True)
-    transkrip = models.ImageField(upload_to=RandomFileName('user/certificate/transkrip/'), null=True, blank=True)
+    foto = models.ImageField(upload_to=RandomFileName('certificate/'), null=True, blank=True)
+    transkrip = models.ImageField(upload_to=RandomFileName('certificate/transkrip/'), null=True, blank=True)
 
     def __str__(self):
         return self.institute_name
@@ -133,11 +133,11 @@ class UserBerkas(TrackableDateModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     employee = models.OneToOneField(User, on_delete=models.PROTECT, null=True, blank=True)
     nik = models.CharField(max_length=255, null=True, blank=True)
-    berkas_ktp = models.FileField(upload_to=RandomFileName('user/ktp/'), null=True, blank=True)
+    berkas_ktp = models.FileField(upload_to=RandomFileName('ktp/'), null=True, blank=True)
     no_npwp = models.CharField(max_length=255, null=True, blank=True)
-    berkas_npwp = models.FileField(upload_to='user/npwp/', null=True, blank=True)
+    berkas_npwp = models.FileField(upload_to='npwp/', null=True, blank=True)
     no_bpjs = models.CharField(max_length=255, null=True, blank=True)
-    berkas_bpjs = models.FileField(upload_to=RandomFileName('user/bpjs/'), null=True, blank=True)
+    berkas_bpjs = models.FileField(upload_to=RandomFileName('bpjs/'), null=True, blank=True)
     
     def __str__(self):
         return self.nik
@@ -150,8 +150,8 @@ class UserContract(TrackableDateModel):
     contract_time = models.CharField(max_length=250, blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        contract_start_date = datetime.strptime(self.contract_start, '%Y-%m-%d')
-        contract_end_date = datetime.strptime(self.contract_end, '%Y-%m-%d')
+        contract_start_date = datetime.strptime(str(self.contract_start), '%Y-%m-%d')
+        contract_end_date = datetime.strptime(str(self.contract_end), '%Y-%m-%d')
         vas =  contract_end_date - contract_start_date
         years = vas.days // 365
         months = (vas.days - years *365) // 30
@@ -171,7 +171,7 @@ class UserContract(TrackableDateModel):
 class Certificate(TrackableDateModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     nama = models.CharField(max_length=255, null=False, blank=False)
-    berkas = models.FileField(upload_to=RandomFileName('user/sertifikat/'), null=True, blank=True)
+    berkas = models.FileField(upload_to=RandomFileName('sertifikat/'), null=True, blank=True)
 
     def __str__(self):
         return self.nama
@@ -179,7 +179,7 @@ class Certificate(TrackableDateModel):
 class UserAdditionalData(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     employee = models.OneToOneField(User, on_delete=models.PROTECT, null=True, blank=True)
-    cv = models.FileField(upload_to=RandomFileName('user/cv/'), null=True, blank=True)
+    cv = models.FileField(upload_to=RandomFileName('cv/'), null=True, blank=True)
     sertifikat = models.ManyToManyField(Certificate)
 
     def __str__(self):
