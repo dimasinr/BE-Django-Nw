@@ -51,6 +51,39 @@ class UserApiView(APIView):
             serializer = UserDetailsSerializer(userprofiles, many=True)
 
         return Response(serializer.data)
+    
+    def post(self, request):
+        first_name = request.data.get("first_name")
+        last_name = request.data.get("last_name")
+        username = request.data.get("username")
+        email = request.data.get("email")
+        password = request.data.get("password")
+        confirm_password = request.data.get("confirm_password")
+
+        user_filter = User.objects.filter(username=username)
+        email_filter = User.objects.filter(email=email)
+        print(user_filter)
+
+        if first_name == None or last_name == None or username == None or email == None or password == None or confirm_password == None:
+            return Response({'message': 'Gagal! isi semua fields',}, status=status.HTTP_400_BAD_REQUEST) 
+        if password != confirm_password:
+            return Response({'message': 'Gagal! Password tidak sama',}, status=status.HTTP_400_BAD_REQUEST) 
+        if len(password) < 8 and len(confirm_password) < 8:
+            return Response({'message': 'Gagal! Password minimal 8 digit',}, status=status.HTTP_400_BAD_REQUEST) 
+        if user_filter is None:
+            return Response({'message': 'Gagal! Username Sudah digunakan',}, status=status.HTTP_400_BAD_REQUEST) 
+        if email_filter is None:
+            return Response({'message': 'Gagal! Email Sudah digunakan',}, status=status.HTTP_400_BAD_REQUEST) 
+        print(f"{first_name} - {last_name} - {email} - {password} - {username}")
+
+        user = User()
+        user.first_name = first_name
+        user.last_name = last_name
+        user.email = email
+        user.password = make_password(password)
+        user.username = username
+        user.save()
+        return Response({'message': 'Berhasil! User Sudah dibuat',}, status=status.HTTP_201_CREATED) 
 
 class UserViewId(viewsets.ModelViewSet):
     serializer_class = UserDetailsSerializer
