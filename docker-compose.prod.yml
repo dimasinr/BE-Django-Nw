@@ -2,6 +2,9 @@ version: "2"
 services:
   nginx:
     build: ./config/nginx
+    volumes:
+      - static_volume:/backendPeti/static
+      - media_volume:/backendPeti/media
     ports:
       - "80:80"
     depends_on:
