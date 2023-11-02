@@ -413,7 +413,7 @@ class PresenceAnalysisEmployee(APIView):
         end_date = request.query_params.get('end_date', None)
         fm_range = datetime.strptime(from_date, '%Y-%m-%d').month
         em_range =  datetime.strptime(end_date, '%Y-%m-%d').month
-        months = range(fm_range, em_range)
+        months = range(fm_range, em_range+1)
 
         print(from_date, end_date)
 
