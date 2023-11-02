@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
-from presenceEmployee.utils.utils import parseHour, parseMinute, parseToHour, median
+from presenceEmployee.utils.utils import parseHour, parseMinute, parseToHour, median, formula_sum_actual
 from calendarDash.models import CalendarDashHRD
 from presenceEmployee.models import PresenceEmployee
 from userapp.utils.modelfunction import create_log
@@ -497,7 +497,7 @@ class PresenceAnalysisEmployee(APIView):
 
             jk_efektif = presences.count() * 800
             
-            kurleb = total_working_hour - jk_efektif
+            kurleb = formula_sum_actual(total_working_hour, jk_efektif)
 
             month = month_name[month]
             formatted_result = {

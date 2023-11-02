@@ -69,3 +69,45 @@ def median(lst):
         median = (sorted_lst[middle_index - 1] + sorted_lst[middle_index]) / 2.0
     
     return median
+
+def formula_sum_actual(x, y):
+    var_d = x - y
+    var_x = str(var_d)
+    length = len(var_x)
+    data1 = length - 2
+    slics = var_x[data1:]
+    slics_int = int(slics)
+    print(slics)
+    print(length)
+    var4 = var_d + 40
+    print(str(var4)[-2:])
+    pars = int(str(var4)[-2:])
+    
+    if slics_int > 59:
+        if var_d < 40:
+            print("if 1.1")
+            return var4
+        else:
+            print("else 1")
+            return var_d - 40
+    else:
+        if pars > 59:
+            if pars > 60:
+                print("if 1")
+                return var_d
+            elif pars > 40:
+                return var_d - 40
+            else:
+                print("if 1.2")
+                return x - y
+        else:
+            if pars < 59:
+                if var_d < 40:
+                    print("if 2")
+                    return var_d + 40
+                else:
+                    print("if 2.2")
+                    return var_d
+            else:
+                print("else 3")
+                return var_d + 40
