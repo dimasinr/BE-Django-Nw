@@ -31,3 +31,41 @@ def calculate_total_duration(data):
             result[employeeId]["total_duration"] += 100
 
     return result
+
+def parseHour(hour):
+    va_hour = 0
+    if hour:
+        h_str = str(hour)
+        if len(h_str) <= 2:
+            return '0'
+        va_hour = int(h_str[:-2])
+    return va_hour
+
+def parseMinute(hour):
+    minutes = 0
+    if hour:
+        h_str = str(hour)
+        minutes = int(h_str[-2:])
+    return minutes
+
+def parseToHour(hour):
+    dig_awal = hour // 100
+    dig_akhir = hour % 100
+
+    if dig_akhir > 59:
+        dig_awal += 1
+        dig_akhir -= 60
+
+    humanize_hour = dig_awal * 100 + dig_akhir
+
+    return int(humanize_hour)
+
+def median(lst):
+    sorted_lst = sorted(lst)
+    middle_index = len(sorted_lst) // 2
+    if len(sorted_lst) % 2 == 1:
+        median = sorted_lst[middle_index]
+    else:
+        median = (sorted_lst[middle_index - 1] + sorted_lst[middle_index]) / 2.0
+    
+    return median

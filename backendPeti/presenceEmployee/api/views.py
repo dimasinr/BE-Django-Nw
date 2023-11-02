@@ -2,11 +2,12 @@ from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
+from presenceEmployee.utils.utils import parseHour, parseMinute, parseToHour, median
 from calendarDash.models import CalendarDashHRD
 from presenceEmployee.models import PresenceEmployee
 from userapp.utils.modelfunction import create_log
 from .serializers import PresenceEmployeeSerializers
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Q, Sum, F, Avg
 from userapp.models import User
 from rest_framework.pagination import LimitOffsetPagination
 from django.db.models.functions import TruncMonth
@@ -399,3 +400,119 @@ class PresenceLocked(APIView):
                 return Response({'message': 'Masukan data yang benar pada value lock'}, status=status.HTTP_201_CREATED)
         else:
             return Response({'message': 'Anda tidak memiliki hak akses untuk mengunci atau membuka kunci presensi'}, status=status.HTTP_403_FORBIDDEN)
+
+from calendar import month_name
+
+class PresenceAnalysisEmployee(APIView):
+    def get(self, request):
+        year = datetime.now().year
+        model = PresenceEmployee.objects
+
+        user = request.query_params.get('employee', None)
+        from_date = request.query_params.get('from_date', None)
+        end_date = request.query_params.get('end_date', None)
+        fm_range = datetime.strptime(from_date, '%Y-%m-%d').month
+        em_range =  datetime.strptime(end_date, '%Y-%m-%d').month
+        months = range(fm_range, em_range)
+
+        print(from_date, end_date)
+
+        monthly_totals = []
+        summary_presence = []
+        av_start_from = []
+        av_end_from = []
+        av_lembur = 0
+
+        summary_presence.append({
+            "sakit": 0,
+            "cuti": 0,
+            "izin": 0,
+            "average_pre_in" : 0,
+            "average_pre_out" : 0,
+            "average_lembur" : 0
+        })
+
+        for y in model.filter(working_date__gte=from_date, working_date__lte=end_date, employee__id=user):
+            if y.ket == "sakit":
+                summary_presence[0]['sakit'] += 1
+            elif y.ket == "cuti":
+                summary_presence[0]['cuti'] += 1
+            elif y.ket == "izin":
+                summary_presence[0]['izin'] += 1
+        
+        for month in months:
+            print(month)
+            presences = model.filter(
+               working_date__month=month, employee__id=user, start_from__isnull=False
+            )
+
+            j_wk = 0
+            m_wk = 0
+           
+            j_lembur = 0
+            m_lembur = 0
+
+            jam_lembur = 0
+            menit_lembur = 0
+
+            jam = 0
+            menit = 0
+           
+            for pres in presences:
+                jam = parseHour(pres.working_hour if pres.working_hour else 0)
+                menit = parseMinute(pres.working_hour if pres.working_hour else 0)
+                jam_lembur = parseHour(pres.lembur_hour if pres.lembur_hour else 0)
+                menit_lembur = parseMinute(pres.lembur_hour if pres.lembur_hour else 0)
+                # if jam is None:
+                #     jam = 0
+                # if menit is None:
+                #     menit = 0
+                # if jam_lembur is None:
+                #     jam_lembur = 0
+                # if menit_lembur is None:
+                #     menit_lembur = 0
+
+                j_wk += int(jam)
+                m_wk += int(menit)
+                j_lembur += int(jam_lembur)
+                m_lembur += int(menit_lembur)
+
+                av_start_from.append(pres.start_from)
+                av_end_from.append(pres.end_from)
+            
+            j = parseHour(m_wk)
+            m = parseMinute(m_wk)
+            jl = parseHour(m_lembur)
+            jm = parseMinute(m_lembur)
+
+            jam_aktual = j_wk + int(j)
+            jam_lembur = jam_lembur + int(jl)
+
+            t_working_hour = f"{jam_aktual}{m if m != 0 else '00'}"
+            t_lembur_hour = f"{jam_lembur}{jm if jm != 0 else '00'}"
+
+            av_lembur+=int(t_lembur_hour)
+
+            total_working_hour = int(t_working_hour)
+
+            jk_efektif = presences.count() * 800
+            
+            kurleb = total_working_hour - jk_efektif
+
+            month = month_name[month]
+            formatted_result = {
+                "bulan": month,
+                "hari_kerja": presences.count(),
+                "jk_aktual": total_working_hour,
+                "jk_efektif": jk_efektif,
+                "kurleb": kurleb,
+            }
+            monthly_totals.append(formatted_result)
+            
+        total_days = model.filter(working_date__gte=from_date, working_date__lte=end_date, employee__id=user, start_from__isnull=False).count()
+        print(total_days)
+
+        summary_presence[0]['average_pre_in'] = int(median(av_start_from if av_start_from else [0]))
+        summary_presence[0]['average_pre_out'] = int(median(av_end_from if av_end_from else [0]))
+        summary_presence[0]['average_lembur'] = parseToHour(av_lembur/total_days if total_days else 1)
+        return Response({"data": monthly_totals, "summary": summary_presence})

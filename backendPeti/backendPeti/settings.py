@@ -49,10 +49,10 @@ INSTALLED_APPS = [
     'rest_auth',
     'django.contrib.sites',
     'corsheaders',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.openid',   
+    # 'allauth',
+    # 'allauth.account',
+    # 'allauth.socialaccount',
+    # 'allauth.socialaccount.providers.openid',   
     'rest_auth.registration',
     'userapp',
     'pengajuanEmp',
@@ -85,7 +85,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",    
-    'allauth.account.middleware.AccountMiddleware',
+    # 'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'backendPeti.urls'
@@ -106,7 +106,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'backendPeti.wsgi.application'
+# WSGI_APPLICATION = 'backendPeti.wsgi.application'
 
 CORS_ORIGIN_WHITELIST = [
     # "http://hrd.localhost:3000",

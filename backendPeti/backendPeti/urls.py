@@ -31,7 +31,7 @@ from presenceEmployee.api.views import (
     PresenceStatistikUser, 
     StatistikPresenceInMonth, 
     StatistikSubmissionEmployeeInMonth, 
-    PresenceWFHGenerate, PresenceLocked
+    PresenceWFHGenerate, PresenceLocked, PresenceAnalysisEmployee
 )
 from submisssion.api.views import (
     CalendarSubmissionView, 
@@ -80,6 +80,7 @@ urlpatterns = (
     path('api/presence/total-day/', TopPresenceAPIView.as_view()),
     path('api/presence/generate-wfh/', PresenceWFHGenerate.as_view()),
     path('api/presence/lock/', PresenceLocked.as_view()),
+    path('api/presence/analysis-employee/', PresenceAnalysisEmployee.as_view()),
 
     path('api/note/', include('noteHR.api.urls')),
     path('api/note/delete/', post_delete_notes),

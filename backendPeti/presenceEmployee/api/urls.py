@@ -8,5 +8,6 @@ router.register('employees', PresenceAPIViewID, basename='employees')
 
 urlpatterns = [
     url('presence', PresenceAPIView.as_view()),
+    # url('analysis', PresenceAnalysisEmployee.as_view()),
     url('', include(router.urls)),
 ]
