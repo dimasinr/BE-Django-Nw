@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
-from presenceEmployee.utils.utils import parseHour, parseMinute, parseToHour, median, formula_sum_actual
+from presenceEmployee.utils.utils import parseHour, parseMinute, parseToHour, median, formula_sum_actual, fix_hour
 from calendarDash.models import CalendarDashHRD
 from presenceEmployee.models import PresenceEmployee
 from userapp.utils.modelfunction import create_log
@@ -463,15 +463,6 @@ class PresenceAnalysisEmployee(APIView):
                 menit = parseMinute(pres.working_hour if pres.working_hour else 0)
                 jam_lembur = parseHour(pres.lembur_hour if pres.lembur_hour else 0)
                 menit_lembur = parseMinute(pres.lembur_hour if pres.lembur_hour else 0)
-                # if jam is None:
-                #     jam = 0
-                # if menit is None:
-                #     menit = 0
-                # if jam_lembur is None:
-                #     jam_lembur = 0
-                # if menit_lembur is None:
-                #     menit_lembur = 0
-
                 j_wk += int(jam)
                 m_wk += int(menit)
                 j_lembur += int(jam_lembur)
@@ -479,17 +470,38 @@ class PresenceAnalysisEmployee(APIView):
 
                 av_start_from.append(pres.start_from)
                 av_end_from.append(pres.end_from)
+            print(f"jam : {j_wk}, menit : {m_wk}, lembur : {j_lembur}, menlembur : {m_lembur}")
+            menit_kerja = fix_hour(m_wk)
+            menit_lembur = fix_hour(m_lembur)
             
-            j = parseHour(m_wk)
-            m = parseMinute(m_wk)
-            jl = parseHour(m_lembur)
-            jm = parseMinute(m_lembur)
+            if len(str(menit_kerja)) > 2:
+                sub_mk = parseHour(menit_kerja)
+                sub_mk2 = parseMinute(menit_kerja)
+                if len(str(sub_mk2)) < 2:
+                    sub_mk2 = f"0{sub_mk2}"
+                j_wk+=sub_mk
+                menit_kerja = sub_mk2
 
-            jam_aktual = j_wk + int(j)
-            jam_lembur = jam_lembur + int(jl)
+            if len(str(menit_lembur)) > 2:
+                sub_ml = parseHour(menit_lembur)
+                sub_ml2 = parseMinute(menit_lembur)
+                if len(str(sub_ml2)) < 2:
+                    sub_ml2 = f"0{sub_ml2}"
+                j_wk+=sub_ml
+                menit_lembur = sub_ml2
+            
+            if menit_kerja == 0:
+                menit_kerja = f"{parseMinute(menit_kerja)}0"
+            if menit_lembur == 0:
+                menit_lembur = f"{parseMinute(menit_lembur)}0"
 
-            t_working_hour = f"{jam_aktual}{m if m != 0 else '00'}"
-            t_lembur_hour = f"{jam_lembur}{jm if jm != 0 else '00'}"
+            print(f"jam : {j_wk}{menit_kerja}")
+            print(f"jam : {j_lembur}{menit_lembur}")
+            jam_aktual = int(f"{j_wk}{menit_kerja}")
+            jam_aktual_lembur = int(f"{j_lembur}{menit_lembur}")
+        
+            t_working_hour = fix_hour(jam_aktual)
+            t_lembur_hour = fix_hour(jam_aktual_lembur)
 
             av_lembur+=int(t_lembur_hour)
 
@@ -497,7 +509,7 @@ class PresenceAnalysisEmployee(APIView):
 
             jk_efektif = presences.count() * 800
             
-            kurleb = formula_sum_actual(total_working_hour, jk_efektif)
+            kurleb = (total_working_hour - jk_efektif)
 
             month = month_name[month]
             formatted_result = {
@@ -510,7 +522,6 @@ class PresenceAnalysisEmployee(APIView):
             monthly_totals.append(formatted_result)
             
         total_days = model.filter(working_date__gte=from_date, working_date__lte=end_date, employee__id=user, start_from__isnull=False).count()
-        print(total_days)
 
         summary_presence[0]['average_pre_in'] = int(median(av_start_from if av_start_from else [0]))
         summary_presence[0]['average_pre_out'] = int(median(av_end_from if av_end_from else [0]))

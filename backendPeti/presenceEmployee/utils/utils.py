@@ -34,7 +34,7 @@ def calculate_total_duration(data):
 
 def parseHour(hour):
     va_hour = 0
-    if hour:
+    if hour and hour != 0:
         h_str = str(hour)
         if len(h_str) <= 2:
             return '0'
@@ -42,10 +42,12 @@ def parseHour(hour):
     return va_hour
 
 def parseMinute(hour):
-    minutes = 0
+    minutes = '0'
     if hour:
         h_str = str(hour)
         minutes = int(h_str[-2:])
+        if minutes == 0:
+            minutes = '0'
     return minutes
 
 def parseToHour(hour):
@@ -111,3 +113,21 @@ def formula_sum_actual(x, y):
             else:
                 print("else 3")
                 return var_d + 40
+
+def fix_hour(hour):
+    hour_actual = str(hour)
+    two_digit = hour_actual[-2:] 
+    two = int(hour_actual[-2:])
+    if two_digit == '00':
+        two_digit = '00'
+    else:
+        if int(two_digit) > 59:
+            two += 40
+            two_digit = two 
+
+    return int(f"{hour_actual[:-2] }{two_digit}")
+    # h = int(hour)
+    # if hour > 59:
+    #     h = hour + 40
+
+    # return h
