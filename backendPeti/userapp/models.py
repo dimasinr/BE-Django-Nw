@@ -180,7 +180,7 @@ class UserAdditionalData(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     employee = models.OneToOneField(User, on_delete=models.PROTECT, null=True, blank=True)
     cv = models.FileField(upload_to=RandomFileName('cv/'), null=True, blank=True)
-    sertifikat = models.ManyToManyField(Certificate)
+    sertifikat = models.ManyToManyField(Certificate, null=True, blank=True)
 
     def __str__(self):
         return self.id

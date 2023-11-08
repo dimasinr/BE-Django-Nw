@@ -443,8 +443,8 @@ class PresenceAnalysisEmployee(APIView):
         for month in months:
             print(month)
             presences = model.filter(
-               working_date__month=month, employee__id=user, start_from__isnull=False
-            )
+               working_date__month=month, employee__id=user
+            ).exclude(ket__in=['sakit', 'cuti', 'izin', 'wfh'])
 
             j_wk = 0
             m_wk = 0
@@ -468,8 +468,11 @@ class PresenceAnalysisEmployee(APIView):
                 j_lembur += int(jam_lembur)
                 m_lembur += int(menit_lembur)
 
-                av_start_from.append(pres.start_from)
-                av_end_from.append(pres.end_from)
+                if pres.start_from:
+                    av_start_from.append(pres.start_from)
+                    av_end_from.append(pres.end_from)
+                else:
+                    pass
             print(f"jam : {j_wk}, menit : {m_wk}, lembur : {j_lembur}, menlembur : {m_lembur}")
             menit_kerja = fix_hour(m_wk)
             menit_lembur = fix_hour(m_lembur)
@@ -495,8 +498,8 @@ class PresenceAnalysisEmployee(APIView):
             if menit_lembur == 0:
                 menit_lembur = f"{parseMinute(menit_lembur)}0"
 
-            print(f"jam : {j_wk}{menit_kerja}")
-            print(f"jam : {j_lembur}{menit_lembur}")
+            # print(f"jam : {j_wk}{menit_kerja}")
+            # print(f"jam : {j_lembur}{menit_lembur}")
             jam_aktual = int(f"{j_wk}{menit_kerja}")
             jam_aktual_lembur = int(f"{j_lembur}{menit_lembur}")
         
@@ -506,10 +509,14 @@ class PresenceAnalysisEmployee(APIView):
             av_lembur+=int(t_lembur_hour)
 
             total_working_hour = int(t_working_hour)
-
-            jk_efektif = presences.count() * 800
+            efektif_hour = 800
+            if user == 6:
+                efektif_hour = 900
+            jk_efektif = presences.count() * efektif_hour
             
-            kurleb = (total_working_hour - jk_efektif)
+            kurleb = 0
+            if presences.count() != 0 and total_working_hour != 0 and jk_efektif != 0:
+                kurleb = formula_sum_actual(total_working_hour,jk_efektif)
 
             month = month_name[month]
             formatted_result = {
