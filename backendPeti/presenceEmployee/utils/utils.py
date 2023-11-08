@@ -77,29 +77,40 @@ def formula_sum_actual(x, y):
     var_x = str(var_d)
     length = len(var_x)
     data1 = length - 2
-    slics = var_x[data1:]
+    slics = var_x[data1]
     slics_int = int(slics)
     var4 = var_d + 40
     pars = int(str(var4)[-2:])
+    print(slics_int)
     
     if slics_int > 59:
         if var_d < 40:
+            print("if 1")
             return var4
+        elif slics_int == 00:
+            print(slics_int)
+            return var_d
         else:
+            print("if2")
             return var_d - 40
     else:
         if pars > 59:
             if pars > 60:
+                print("if3")
                 return var_d
             elif pars > 40:
-                return var_d - 40
+                print("if4")
+                return var_d
             else:
+                print("if5")
                 return x - y
         else:
             if pars < 59:
                 if var_d < 40:
+                    print("if6")
                     return var_d + 40
                 else:
+                    print("if7")
                     return var_d
             else:
                 return var_d + 40

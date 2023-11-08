@@ -439,13 +439,17 @@ class PresenceAnalysisEmployee(APIView):
                 summary_presence[0]['cuti'] += 1
             elif y.ket == "izin":
                 summary_presence[0]['izin'] += 1
+
+        calendar = CalendarDashHRD.objects.all().filter(date__year=datetime.strptime(from_date, '%Y-%m-%d').year)
+        calendar_data = []
+        for cal in calendar:
+            calendar_data.append(cal.title_day)
         
         for month in months:
-            print(month)
             presences = model.filter(
-               working_date__month=month, employee__id=user
-            ).exclude(ket__in=['sakit', 'cuti', 'izin', 'wfh'])
-
+                working_date__month=month,
+                employee__id=user,
+            ).exclude(ket__in=['sakit', 'cuti', 'izin', 'wfh']).exclude(ket__in=calendar_data)
             j_wk = 0
             m_wk = 0
            
