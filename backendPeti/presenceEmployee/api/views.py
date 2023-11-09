@@ -516,7 +516,7 @@ class PresenceAnalysisEmployee(APIView):
             efektif_hour = 800
             if user == 6:
                 efektif_hour = 900
-            jk_efektif = presences.count() * efektif_hour
+            jk_efektif = presences.filter(start_from__isnull=False).count() * efektif_hour
             
             kurleb = 0
             if presences.count() != 0 and total_working_hour != 0 and jk_efektif != 0:
@@ -525,7 +525,7 @@ class PresenceAnalysisEmployee(APIView):
             month = month_name[month]
             formatted_result = {
                 "bulan": month,
-                "hari_kerja": presences.count(),
+                "hari_kerja": presences.filter(start_from__isnull=False).count(),
                 "jk_aktual": total_working_hour,
                 "jk_efektif": jk_efektif,
                 "kurleb": kurleb,
