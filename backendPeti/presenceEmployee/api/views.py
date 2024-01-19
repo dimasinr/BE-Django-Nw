@@ -247,6 +247,7 @@ class TopPresenceAPIView(APIView):
     def get(self, request):
         querySet = PresenceEmployee.objects.values('working_hour').annotate(employee__pk=Count('working_hour')).order_by('-employee__pk')[:5]
         months = self.request.query_params.get('months', None)
+        year = self.request.query_params.get('year', None)
         
         querySet = PresenceEmployee.objects.all()
         employee = self.request.query_params.get('employee', None)
@@ -254,6 +255,8 @@ class TopPresenceAPIView(APIView):
             querySet=querySet.filter(employee__pk=employee)
         if months:
             querySet=querySet.filter(months=months)
+        if year:
+            querySet=querySet.filter(years=year)
         
         total_karyawan_all = querySet.count()
         total_karyawan = querySet.aggregate(
