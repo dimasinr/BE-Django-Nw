@@ -25,6 +25,6 @@ urlpatterns = [
     url('berkas', UserBerkasAPIView.as_view()),
     url('bank', UserBankAPIView.as_view()),
     url('pendidikan', UserCertificateAPIView.as_view()),
-    url('contract', UserContractAPIView.as_view()),
+    url('annual-contract', UserContractAPIView.as_view()),
     url('', include(router.urls)),
 ]

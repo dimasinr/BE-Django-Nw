@@ -68,7 +68,7 @@ urlpatterns = (
     path('cuti/', include('saldoCuti.api.urls')),
 
     path('attendance/', include('attendanceEmployee.api.urls')),
-    path('attendance/employee-sea/', AttendanceAPISearch.as_view()),
+    path('attendance/employee-sea/', AttendanceAPISearch.as_view()),  
     path('attendance/employee-analysis/', AttendanceAPIAnalisis.as_view()),
     path('attendance/employee/compare/', AttendanceAPICompare.as_view()),
     path('attendance/total-day/', TopAttendanceAPIView.as_view()),
