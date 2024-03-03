@@ -132,3 +132,17 @@ def fix_hour(hour):
     #     h = hour + 40
 
     # return h
+
+def last_digit(value):
+    st = str(value)
+    length = len(st)
+    if length == 4:
+        res = st[2:]
+    elif length == 3:
+        rs = st[1:]
+        res = f"{rs}"
+    else:
+        res = 0  
+    if value is None:
+        return 0
+    return int(res)

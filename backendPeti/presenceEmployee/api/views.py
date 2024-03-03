@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
-from presenceEmployee.utils.utils import parseHour, parseMinute, parseToHour, median, formula_sum_actual, fix_hour
+from presenceEmployee.utils.utils import last_digit, parseHour, parseMinute, parseToHour, median, formula_sum_actual, fix_hour
 from calendarDash.models import CalendarDashHRD
 from presenceEmployee.models import PresenceEmployee
 from userapp.utils.modelfunction import create_log
@@ -13,6 +13,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from django.db.models.functions import TruncMonth
 from datetime import timedelta, datetime
 import calendar
+from collections import Counter
 
 class PresenceAPIView(APIView):
     serializer_class = PresenceEmployeeSerializers
@@ -541,3 +542,66 @@ class PresenceAnalysisEmployee(APIView):
         summary_presence[0]['average_pre_out'] = int(median(av_end_from if av_end_from else [0]))
         summary_presence[0]['average_lembur'] = parseToHour(av_lembur/total_days if total_days else 1)
         return Response({"data": monthly_totals, "summary": summary_presence})
+
+class PresenceAnalysisOn(APIView):
+    def get(self, request, year, month):
+        users = self.request.user
+        model = PresenceEmployee.objects.filter(years=year, months=month)
+        if users.roles == 'karyawan' or users.roles == 'atasan':
+            model.filter(employee=users)
+        
+        employee = request.query_params.get('employee', None)
+        if employee and users.roles == 'hrd':
+            model.filter(employee=employee)
+
+        srz = PresenceEmployeeSerializers(model, many=True)
+
+        total_hour_working = 0
+        total_hour_lembur = 0
+
+        keterangan = {
+            'cuti' : 0,
+            'izin' : 0,
+            'sakit' : 0
+        }
+
+
+        for x in model:
+            if x.working_hour is not None:
+                value = total_hour_working + x.working_hour
+                total_dua_bel = last_digit(x.working_hour) + last_digit(total_hour_working)
+                if total_dua_bel > 59:
+                    value += 40
+                total_hour_working = value
+
+            if x.lembur_hour is not None:
+                lembur_value = total_hour_lembur + x.lembur_hour
+                total_dua_bel_lembur = last_digit(x.lembur_hour) + last_digit(total_hour_lembur)
+                if total_dua_bel_lembur > 59:
+                    lembur_value += 40
+                total_hour_lembur = lembur_value
+            
+            if x.ket:
+                if x.ket == 'cuti':
+                    keterangan['cuti']+=1
+                elif x.ket == 'sakit':
+                    keterangan['sakit']+=1
+                elif x.ket == 'izin':
+                    keterangan['izin']+=1
+        count_day = model.count()
+        jam_efektif = count_day*800
+        if employee == 6 or users.id == 6:
+            jam_efektif = count_day*900
+        
+        summary_hour = formula_sum_actual(total_hour_working, jam_efektif)
+
+        context = {
+            'data' : srz.data,
+            'total_hour' : total_hour_working,
+            'total_hour_lembur' : total_hour_lembur,
+            'keterangan' : keterangan,
+            'working_day' :count_day,
+            'efektif_hour' : jam_efektif,
+            'summary_hour' : summary_hour
+        }
+        return Response(context)
