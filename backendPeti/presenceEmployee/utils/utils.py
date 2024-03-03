@@ -81,7 +81,6 @@ def formula_sum_actual(x, y):
     slics_int = int(slics)
     var4 = var_d + 40
     pars = int(str(var4)[-2:])
-    print(slics_int)
     
     if slics_int > 59:
         if var_d < 40:

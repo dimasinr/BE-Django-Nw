@@ -548,11 +548,11 @@ class PresenceAnalysisOn(APIView):
         users = self.request.user
         model = PresenceEmployee.objects.filter(years=year, months=month)
         if users.roles == 'karyawan' or users.roles == 'atasan':
-            model.filter(employee=User.objects.get(id=users.id))
+            model = model.filter(employee=User.objects.get(id=users.id))
         
         employee = request.query_params.get('employee', None)
         if employee and users.roles == 'hrd':
-            model.filter(employee=employee)
+            model = model.filter(employee=employee)
 
         srz = PresenceEmployeeSerializers(model, many=True)
 
