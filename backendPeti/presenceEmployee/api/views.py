@@ -6,7 +6,7 @@ from presenceEmployee.utils.utils import last_digit, parseHour, parseMinute, par
 from calendarDash.models import CalendarDashHRD
 from presenceEmployee.models import PresenceEmployee
 from userapp.utils.modelfunction import create_log
-from .serializers import PresenceEmployeeSerializers
+from .serializers import PresenceEmployeeSerializers, PresenceEmployeeAnalisisSerializers
 from django.db.models import Count, Q, Sum, F, Avg
 from userapp.models import User
 from rest_framework.pagination import LimitOffsetPagination
@@ -548,13 +548,13 @@ class PresenceAnalysisOn(APIView):
         users = self.request.user
         model = PresenceEmployee.objects.filter(years=year, months=month)
         if users.roles == 'karyawan' or users.roles == 'atasan':
-            model = model.filter(employee=User.objects.get(id=users.id))
+            presence = model.filter(employee=User.objects.get(id=users.id))
         
         employee = request.query_params.get('employee', None)
         if employee and users.roles == 'hrd':
-            model = model.filter(employee=employee)
+            presence = model.filter(employee=employee)
 
-        srz = PresenceEmployeeSerializers(model, many=True)
+        srz = PresenceEmployeeAnalisisSerializers(presence, many=True)
 
         total_hour_working = 0
         total_hour_lembur = 0
@@ -566,7 +566,7 @@ class PresenceAnalysisOn(APIView):
         }
 
 
-        for x in model:
+        for x in presence:
             if x.working_hour is not None:
                 value = total_hour_working + x.working_hour
                 total_dua_bel = last_digit(x.working_hour) + last_digit(total_hour_working)
@@ -588,7 +588,7 @@ class PresenceAnalysisOn(APIView):
                     keterangan['sakit']+=1
                 elif x.ket == 'izin':
                     keterangan['izin']+=1
-        count_day = model.count()
+        count_day = presence.count()
         jam_efektif = count_day*800
         if employee == 6 or users.id == 6:
             jam_efektif = count_day*900
