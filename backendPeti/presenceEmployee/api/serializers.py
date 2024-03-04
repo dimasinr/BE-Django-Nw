@@ -3,7 +3,11 @@ from presenceEmployee.models import PresenceEmployee
 from userapp.serializer import UserDetailsSerializer
 
 class PresenceEmployeeSerializers(serializers.ModelSerializer):
-    employee = UserDetailsSerializer(read_only=True)
+    # employee = UserDetailsSerializer(read_only=True)
+    employee = serializers.SerializerMethodField()
+
+    def get_employee(self, obj):
+        return obj.employee.name
 
     class Meta:
         model = PresenceEmployee
