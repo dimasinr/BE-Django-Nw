@@ -314,10 +314,14 @@ class StatistikPresenceInMonth(APIView):
 class StatistikSubmissionEmployeeInMonth(APIView):
     def get(self, request, year):
         user_log = self.request.user
+        bulan = request.data.get('month', None)
         if user_log.roles == 'hrd':
             presence_data = PresenceEmployee.objects.all().filter(working_date__year=year)
         else:
             presence_data = PresenceEmployee.objects.all().filter(working_date__year=year, employee=user_log.pk)
+
+        if bulan:
+            presence_data.filter(months=bulan)
     
         result = {
             month_abbr: {
@@ -325,7 +329,8 @@ class StatistikSubmissionEmployeeInMonth(APIView):
                 "sakit": 0,
                 "izin": 0,
                 "cuti": 0,
-                "wfh": 0
+                "wfh": 0,
+                "presence": 0 
             } for month_abbr in calendar.month_abbr[1:]
         }
         
@@ -335,6 +340,10 @@ class StatistikSubmissionEmployeeInMonth(APIView):
             
             if ket in result[month]:
                 result[month][ket] += 1
+                
+            if presence.ket is None and presence.start_from:
+                result[month]['presence'] += 1
+
         create_log(action="get", message=f"logged {user_log.name}")
         return Response(result)
 
