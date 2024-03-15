@@ -340,12 +340,23 @@ class StatistikSubmissionEmployeeInMonth(APIView):
             
             if ket in result[month]:
                 result[month][ket] += 1
-                
+
             if presence.ket is None and presence.start_from:
                 result[month]['presence'] += 1
 
         create_log(action="get", message=f"logged {user_log.name}")
-        return Response(result)
+        if user_log.roles == 'hrd':
+            valid_years = set(PresenceEmployee.objects.all().values_list('years', flat=True))
+        else:
+            valid_years = set(PresenceEmployee.objects.filter(employee=user_log.pk).values_list('years', flat=True))
+
+        list_years = list(valid_years)
+
+        res = {
+            'list_year': list_years,
+            'data' : result
+        }
+        return Response(res)
 
 class PresenceWFHGenerate(APIView):
     def post(self, request):
