@@ -330,7 +330,7 @@ class StatistikSubmissionEmployeeInMonth(APIView):
                 "izin": 0,
                 "cuti": 0,
                 "wfh": 0,
-                "presence": 0 
+                # "presence": 0 
             } for month_abbr in calendar.month_abbr[1:]
         }
         
@@ -341,8 +341,8 @@ class StatistikSubmissionEmployeeInMonth(APIView):
             if ket in result[month]:
                 result[month][ket] += 1
 
-            if presence.ket is None and presence.start_from:
-                result[month]['presence'] += 1
+            # if presence.ket is None and presence.start_from:
+            #     result[month]['presence'] += 1
 
         create_log(action="get", message=f"logged {user_log.name}")
         if user_log.roles == 'hrd':
