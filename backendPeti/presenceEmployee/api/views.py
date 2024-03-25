@@ -356,7 +356,7 @@ class StatistikSubmissionEmployeeInMonth(APIView):
             'list_year': list_years,
             'data' : result
         }
-        return Response(res)
+        return Response(result)
 
 class PresenceWFHGenerate(APIView):
     def post(self, request):
