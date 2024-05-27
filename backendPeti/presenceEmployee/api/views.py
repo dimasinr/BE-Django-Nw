@@ -655,7 +655,7 @@ class PresenceAnalysisOn(APIView):
                     keterangan['sakit']+=1
                 elif x.ket == 'izin':
                     keterangan['izin']+=1
-        count_day = presence.filter(start_from__isnull=False).exclude(cat="").count()
+        count_day = presence.filter(start_from__isnull=False).exclude(ket="").count()
         jam_efektif = count_day*800
         if employee == 6 or users.id == 6:
             jam_efektif = count_day*900
