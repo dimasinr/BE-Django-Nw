@@ -632,7 +632,7 @@ class PresenceAnalysisOn(APIView):
             'sakit' : 0
         }
 
-        count_day = 0
+        # count_day = 0
         for x in presence:
             if x.working_hour is not None:
                 value = total_hour_working + x.working_hour
