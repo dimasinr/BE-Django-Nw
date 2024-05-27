@@ -357,7 +357,54 @@ class StatistikSubmissionEmployeeInMonth(APIView):
             'data' : result
         }
         return Response(result)
+    
+class StatistikEmployeeperMonth(APIView):
+    def get(self, request, year):
+        user_log = self.request.user
+        bulan = request.data.get('month', None)
+        if user_log.roles == 'hrd':
+            presence_data = PresenceEmployee.objects.all().filter(working_date__year=year)
+        else:
+            presence_data = PresenceEmployee.objects.all().filter(working_date__year=year, employee=user_log.pk)
 
+        if bulan:
+            presence_data.filter(months=bulan)
+    
+        result = {
+            month_abbr: {
+                "tidak masuk": 0,
+                "sakit": 0,
+                "izin": 0,
+                "cuti": 0,
+                "wfh": 0,
+                "presence": 0 
+            } for month_abbr in calendar.month_abbr[1:]
+        }
+        
+        for presence in presence_data:
+            month = calendar.month_abbr[presence.working_date.month]  
+            ket = presence.ket
+            
+            if ket in result[month]:
+                result[month][ket] += 1
+
+            if presence.ket is None and presence.start_from:
+                result[month]['presence'] += 1
+
+        create_log(action="get", message=f"logged {user_log.name}")
+        if user_log.roles == 'hrd':
+            valid_years = set(PresenceEmployee.objects.all().values_list('years', flat=True))
+        else:
+            valid_years = set(PresenceEmployee.objects.filter(employee=user_log.pk).values_list('years', flat=True))
+
+        list_years = list(valid_years)
+
+        res = {
+            'list_year': list_years,
+            'data' : result
+        }
+        return Response(res)
+    
 class PresenceWFHGenerate(APIView):
     def post(self, request):
         start_date = request.data.get('start_date')
@@ -608,7 +655,7 @@ class PresenceAnalysisOn(APIView):
                     keterangan['sakit']+=1
                 elif x.ket == 'izin':
                     keterangan['izin']+=1
-        count_day = presence.count()
+        count_day = presence.filter(ket__isnull=True, start_from__isnull=False).count()
         jam_efektif = count_day*800
         if employee == 6 or users.id == 6:
             jam_efektif = count_day*900
