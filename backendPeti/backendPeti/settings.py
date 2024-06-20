@@ -116,7 +116,8 @@ CORS_ORIGIN_WHITELIST = [
     "http://localhost:5173",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
-    "https://sdm-app.netlify.app"
+    "https://sdm-app.netlify.app",
+    "https://sdm.nawastratechnology.com"
 ]
 # CORS_ORIGIN_WHITELIST = ['*']
 # 
