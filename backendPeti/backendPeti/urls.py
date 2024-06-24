@@ -24,6 +24,7 @@ from userapp.api.views import (
 )
 from calendarDash.api.views import WeekTotals, post_delete_calendar
 from presenceEmployee.api.views import (
+    ListPresenceAnalysis,
     PresenceAPIAnalisis, 
     PresenceAPICompare,
     PresenceAnalysisOn, 
@@ -83,6 +84,7 @@ urlpatterns = (
     path('api/presence/lock/', PresenceLocked.as_view()),
     path('api/presence/analysis-employee/', PresenceAnalysisEmployee.as_view()),
     path('api/presence/analysis/<int:month>/<int:year>/', PresenceAnalysisOn.as_view()),
+    path('api/presence/list-analysis/<int:year>/', ListPresenceAnalysis.as_view()),
 
     path('api/note/', include('noteHR.api.urls')),
     path('api/note/delete/', post_delete_notes),

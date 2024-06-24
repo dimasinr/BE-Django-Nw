@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
-from presenceEmployee.utils.utils import last_digit, parseHour, parseMinute, parseToHour, median, formula_sum_actual, fix_hour
+from presenceEmployee.utils.utils import last_digit, parseHour, parseMinute, parseMonth, parseToHour, median, formula_sum_actual, fix_hour
 from calendarDash.models import CalendarDashHRD
 from presenceEmployee.models import PresenceEmployee
 from userapp.utils.modelfunction import create_log
@@ -673,5 +673,83 @@ class PresenceAnalysisOn(APIView):
             'working_day' :count_day,
             'efektif_hour' : jam_efektif,
             'summary_hour' : summary_hour
+        }
+        return Response(context)
+
+class ListPresenceAnalysis(APIView):
+    def get(self, request, year):
+        users = self.request.user
+        presence = PresenceEmployee.objects.filter(years=year)
+        
+        if users.roles in ['karyawan', 'atasan']:
+            presence = presence.filter(employee=User.objects.get(id=users.id))
+        
+        employee = request.query_params.get('employee', None)
+        if employee and users.roles == 'hrd':
+            presence = presence.filter(employee=employee)
+
+        months = [
+            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        ]
+
+        list_analisis = []
+        for month_number in range(1, 13):
+            pres = presence.filter(months=month_number)
+            total_hour_working = 0
+            total_hour_lembur = 0
+
+            keterangan = {
+                'cuti': 0,
+                'izin': 0,
+                'sakit': 0,
+                'tidak_masuk': 0
+            }
+
+            for entry in pres:
+                if entry.working_hour is not None:
+                    value = total_hour_working + entry.working_hour
+                    total_dua_bel = last_digit(entry.working_hour) + last_digit(total_hour_working)
+                    if total_dua_bel > 59:
+                        value += 40
+                    total_hour_working = value
+
+                if entry.lembur_hour is not None:
+                    lembur_value = total_hour_lembur + entry.lembur_hour
+                    total_dua_bel_lembur = last_digit(entry.lembur_hour) + last_digit(total_hour_lembur)
+                    if total_dua_bel_lembur > 59:
+                        lembur_value += 40
+                    total_hour_lembur = lembur_value
+
+                if entry.ket:
+                    if entry.ket == 'cuti':
+                        keterangan['cuti'] += 1
+                    elif entry.ket == 'sakit':
+                        keterangan['sakit'] += 1
+                    elif entry.ket == 'izin':
+                        keterangan['izin'] += 1
+                    elif entry.ket == 'tidak masuk':
+                        keterangan['tidak_masuk'] += 1
+
+            count_day = pres.filter(start_from__isnull=False).count()
+            jam_efektif = count_day * 800
+            if employee == '6' or users.id == 6:
+                jam_efektif = count_day * 900
+
+            summary_hour = formula_sum_actual(total_hour_working, jam_efektif)
+
+            list_analisis.append({
+                'bulan': months[month_number - 1], 
+                'hadir': pres.filter(start_from__isnull=False).count(),
+                'ket': keterangan,
+                'hk_efektif': count_day,
+                'jk_efektif': jam_efektif,
+                'jk_aktual': total_hour_working,
+                'jk_lembur': total_hour_lembur,
+                'summary_hour': summary_hour
+            })
+
+        context = {
+            'data': list_analisis,
         }
         return Response(context)

@@ -145,3 +145,32 @@ def last_digit(value):
     if value is None:
         return 0
     return int(res)
+
+def parseMonth(value):
+    bulan = ""
+    if value == 1:
+        bulan = "Januari"
+    elif value == 2:
+        bulan = "Febuari"
+    elif value == 3:
+        bulan = "Maret"
+    elif value == 4:
+        bulan = "April"
+    elif value == 5:
+        bulan = "Mei"
+    elif value == 6:
+        bulan = "Juni"
+    elif value == 7:
+        bulan = "Juli"
+    elif value == 8:
+        bulan = "Agustus"
+    elif value == 9:
+        bulan = "September"
+    elif value == 10:
+        bulan = "Oktober"
+    elif value == 11:
+        bulan = "November"
+    elif value == 12:
+        bulan = "Desember"
+    
+    return bulan
