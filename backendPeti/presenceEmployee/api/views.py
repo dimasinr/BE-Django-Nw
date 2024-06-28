@@ -333,10 +333,21 @@ class StatistikSubmissionEmployeeInMonth(APIView):
                 # "presence": 0 
             } for month_abbr in calendar.month_abbr[1:]
         }
+
+        total_hour_working = 0
+        sisa_cuti = 0
+
         
         for presence in presence_data:
             month = calendar.month_abbr[presence.working_date.month]  
             ket = presence.ket
+            if presence.start_from is not None and presence.working_hour is not None:
+                value = total_hour_working + presence.working_hour
+                total_dua_bel = last_digit(presence.working_hour) + last_digit(total_hour_working)
+                if total_dua_bel > 59:
+                    value += 40
+                total_hour_working = value
+
             
             if ket in result[month]:
                 result[month][ket] += 1
@@ -344,19 +355,20 @@ class StatistikSubmissionEmployeeInMonth(APIView):
             # if presence.ket is None and presence.start_from:
             #     result[month]['presence'] += 1
 
-        create_log(action="get", message=f"logged {user_log.name}")
-        if user_log.roles == 'hrd':
-            valid_years = set(PresenceEmployee.objects.all().values_list('years', flat=True))
-        else:
-            valid_years = set(PresenceEmployee.objects.filter(employee=user_log.pk).values_list('years', flat=True))
-
-        list_years = list(valid_years)
+        count_day = presence_data.filter(start_from__isnull=False).count()
+        jam_efektif = count_day * 800
+        if user_log.id == '6' or user_log.id == 6:
+            jam_efektif = count_day * 900
+        # create_log(action="get", message=f"logged {user_log.name}")
 
         res = {
-            'list_year': list_years,
-            'data' : result
+            'data' : result,
+            'total_presence' : count_day,
+            'total_workhour' : total_hour_working,
+            'jk_efektif' : jam_efektif,
+            'sisa_cuti' : user_log.sisa_cuti,
         }
-        return Response(result)
+        return Response(res)
     
 class StatistikEmployeeperMonth(APIView):
     def get(self, request, year):
