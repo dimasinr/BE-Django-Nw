@@ -369,6 +369,65 @@ class StatistikSubmissionEmployeeInMonth(APIView):
             'sisa_cuti' : user_log.sisa_cuti,
         }
         return Response(res)
+
+class StatistikPresenceEmployeePerMonth(APIView):
+    def get(self, request, year):
+        user_log = self.request.user
+        bulan = request.data.get('month', None)
+        if user_log.roles == 'hrd':
+            presence_data = PresenceEmployee.objects.all().filter(working_date__year=year)
+        else:
+            presence_data = PresenceEmployee.objects.all().filter(working_date__year=year, employee=user_log.pk)
+
+        if bulan:
+            presence_data.filter(months=bulan)
+    
+        result = {
+            month_abbr: {
+                "tidak masuk": 0,
+                "sakit": 0,
+                "izin": 0,
+                "cuti": 0,
+                "wfh": 0,
+                "presence": 0 
+            } for month_abbr in calendar.month_abbr[1:]
+        }
+
+        total_hour_working = 0
+        sisa_cuti = 0
+
+        
+        for presence in presence_data:
+            month = calendar.month_abbr[presence.working_date.month]  
+            ket = presence.ket
+            if presence.start_from is not None and presence.working_hour is not None:
+                value = total_hour_working + presence.working_hour
+                total_dua_bel = last_digit(presence.working_hour) + last_digit(total_hour_working)
+                if total_dua_bel > 59:
+                    value += 40
+                total_hour_working = value
+
+            
+            if ket in result[month]:
+                result[month][ket] += 1
+
+            if presence.start_from is not None:
+                result[month]['presence'] += 1
+
+        count_day = presence_data.filter(start_from__isnull=False).count()
+        jam_efektif = count_day * 800
+        if user_log.id == '6' or user_log.id == 6:
+            jam_efektif = count_day * 900
+        # create_log(action="get", message=f"logged {user_log.name}")
+
+        res = {
+            'data' : result,
+            'total_presence' : count_day,
+            'total_workhour' : total_hour_working,
+            'jk_efektif' : jam_efektif,
+            'sisa_cuti' : user_log.sisa_cuti,
+        }
+        return Response(res)
     
 class StatistikEmployeeperMonth(APIView):
     def get(self, request, year):
