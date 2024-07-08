@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.openid',   
+    # 'allauth.socialaccount.providers.openid',   
     'rest_auth.registration',
     'userapp',
     'pengajuanEmp',
