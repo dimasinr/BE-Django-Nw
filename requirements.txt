@@ -12,3 +12,4 @@ whitenoise
 django_resized
 Pillow
 django-import-export
+openid
