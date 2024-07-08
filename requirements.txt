@@ -12,4 +12,4 @@ whitenoise
 django_resized
 Pillow
 django-import-export
-openid==2.2.5  # Replace with a version known to work with Python 3.10
+oic
