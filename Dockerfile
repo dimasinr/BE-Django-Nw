@@ -8,6 +8,4 @@ RUN pip install -r backendPeti/requirements.txt
 WORKDIR /backendPeti
 COPY ./backendPeti /backendPeti
 
-COPY /opt/BE-Django-Nw/.env /backendPeti/.env
-
 # RUN python manage.py collectstatic --noinput
