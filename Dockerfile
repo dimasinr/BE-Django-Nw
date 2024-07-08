@@ -1,24 +1,11 @@
+# FROM python:3.6
 FROM python:3.10-bullseye
-
-# Set environment variables
 ENV PYTHONUNBUFFERED 1
+RUN apt-get update && apt-get install -y libaio1 libpq-dev
+RUN mkdir /backendPeti
+COPY requirements.txt /backendPeti
+RUN pip install -r backendPeti/requirements.txt
+WORKDIR /backendPeti
+COPY ./backendPeti /backendPeti
 
-# Install system dependencies
-RUN apt-get update \
-    && apt-get install -y libaio1 libpq-dev
-
-# Set working directory
-WORKDIR /app
-
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy Django project files
-COPY . .
-
-# Collect static files (if applicable)
 # RUN python manage.py collectstatic --noinput
-
-# Start the application
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "your_project.wsgi:application"]
