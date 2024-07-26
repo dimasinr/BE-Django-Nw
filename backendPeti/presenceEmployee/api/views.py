@@ -337,8 +337,10 @@ class GeneralAPIDashboard(APIView):
         presence = PresenceEmployee.objects.filter(working_date__year=year, start_from__isnull=False)
         user_count = presence.values_list('employee').distinct()
         pres_count = presence.filter(employee__in=user_count).count()
-        presentase = (pres_count/(jumlah_hari_kerja * user_count.count()))*100
-
+        if user_count != 0:
+            presentase = (pres_count/(jumlah_hari_kerja * user_count.count()))*100
+        else:
+            presentase = 0.00
         result = {
             'list_birthday' : srz_birthday.data,
             'list_contract' : srz_contract.data,
