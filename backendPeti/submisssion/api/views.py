@@ -171,15 +171,15 @@ class SubmissionAPIViewID(viewsets.ModelViewSet):
         end_date = self.request.query_params.get('end_date', None)
 
         if employee:
-            querySet=querySet.filter(employee__name__contains=employee)
+            querySet=querySet.filter(employee__name__icontains=employee)
         if end_date:
-            querySet=querySet.filter(end_date__contains=end_date)
+            querySet=querySet.filter(end_date__icontains=end_date)
         if start_date:
-            querySet=querySet.filter(start_date__contains=start_date)
+            querySet=querySet.filter(start_date__icontains=start_date)
         if permission_type:
-            querySet=querySet.filter(permission_type__contains=permission_type)
+            querySet=querySet.filter(permission_type__icontains=permission_type)
         if permission_pil:
-            querySet=querySet.filter(permission_pil__contains=permission_pil)
+            querySet=querySet.filter(permission_pil__icontains=permission_pil)
 
         if(logedin_user == 'karyawan'):
             serializer = SubmissionEmployeeSerializer(querySet, many=True)

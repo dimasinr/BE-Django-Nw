@@ -273,27 +273,27 @@ def get_cuti(request, year, emp_id):
 @api_view(['POST'])
 def post_delete_notes(request):
     notes_data = request.data
-    employee_id = notes_data.get("employee")
-    date_note = notes_data.get("date_note")
-    notes = notes_data.get("notes")
-    type_notes = notes_data.get("type_notes")
+    notes_id = notes_data.get("notes_id")
+    # date_note = notes_data.get("date_note")
+    # notes = notes_data.get("notes")
+    # type_notes = notes_data.get("type_notes")
 
-    user = get_object_or_404(User, id=employee_id)
+    notes = NotesApp.objects.filter(id=notes_id)
 
-    notesed = NotesApp.objects.filter(employee=user, date_note=date_note, notes=notes, type_notes=type_notes)
+    user = get_object_or_404(User, id=notes.employee)
 
-    if type_notes != 'catatan':
-        if type_notes != 'masuk':
-            presencess = PresenceEmployee.objects.get(employee=user, working_date=date_note, ket=type_notes)
-            if type_notes == 'cuti':
+    if notes.ket != 'catatan':
+        if notes.ket != 'masuk':
+            presencess = PresenceEmployee.objects.get(employee=user, working_date=notes.date_note, ket=notes.ket)
+            if notes.ket == 'cuti':
                 user.sisa_cuti += 1
                 user.save()
-                create_log(action="delete", message=f"notes dengan type {type_notes} di delete oleh {request.user.roles}, cuti user {user.name} bertambah 1")
+                create_log(action="delete", message=f"notes dengan type {notes.ket} di delete oleh {request.user.roles}, cuti user {user.name} bertambah 1")
             presencess.delete()
         else:
-            presencess = PresenceEmployee.objects.get(employee=user, working_date=date_note, start_from=900, end_from=1700)
+            presencess = PresenceEmployee.objects.get(employee=user, working_date=notes.date_note, start_from=900, end_from=1700)
             presencess.delete()
 
-    notesed.delete()
+    notes.delete()
     response_message = {"message": "Notes has been deleted"}
     return Response(response_message)

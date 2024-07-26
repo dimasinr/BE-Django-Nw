@@ -7,7 +7,7 @@ admin.site.register(Certificate)
 
 @admin.register(User,  site=admin.site)
 class UserAdmin(ImportExportModelAdmin):
-    list_display = ('id', 'name', 'username', 'email', 'status_employee', 'birth_date', 'alamat')
+    list_display = ('id', 'name', 'division', 'username', 'email', 'status_employee', 'birth_date', 'alamat')
     search_fields = ('name',)
     ordering = ('id', )
 

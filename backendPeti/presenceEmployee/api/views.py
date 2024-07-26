@@ -2,16 +2,17 @@ from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
+from userapp.serializer import UserBirthdaySerializers, UserContractSerializers
 from presenceEmployee.utils.utils import last_digit, parseHour, parseMinute, parseMonth, parseToHour, median, formula_sum_actual, fix_hour
 from calendarDash.models import CalendarDashHRD
 from presenceEmployee.models import PresenceEmployee
 from userapp.utils.modelfunction import create_log
 from .serializers import PresenceEmployeeSerializers, PresenceEmployeeAnalisisSerializers
 from django.db.models import Count, Q, Sum, F, Avg
-from userapp.models import User
+from userapp.models import User, UserDivision
 from rest_framework.pagination import LimitOffsetPagination
 from django.db.models.functions import TruncMonth
-from datetime import timedelta, datetime
+from datetime import date, timedelta, datetime
 import calendar
 from collections import Counter
 
@@ -285,6 +286,68 @@ class PresenceStatistikUser(APIView):
             {item['employee__name']: item['total_attendance']}
             for item in user_attendance
         ]
+        
+        return Response(result)
+
+class GeneralAPIDashboard(APIView):
+    def get(self, request, year, *args, **kwargs):
+        today = datetime.now()
+        current_month = today.month
+        month = request.query_params.get('month', current_month)
+
+        user_attendance = (
+            PresenceEmployee.objects
+            .filter(working_date__year=year, working_hour__isnull=False)
+            .values('employee__name')
+            .annotate(total_attendance=Count('id'))
+            .order_by('total_attendance')
+        )
+        user_birthday = User.objects.filter(birth_date__month=month, is_active=True).order_by('birth_date__day')
+        
+        srz_birthday = UserBirthdaySerializers(user_birthday, many=True)
+
+        previous_month = (current_month - 1) if current_month != 1 else 12
+        next_month = (current_month + 1) if current_month != 12 else 1
+        
+        user_contract = User.objects.filter( contract_end__month__range=(previous_month, next_month), contract_end__year=year, is_active=True)
+        srz_contract = UserContractSerializers(user_contract, many=True)
+
+        divisi = UserDivision.objects.all()
+
+        user_divisi = User.objects.filter(is_active=True).values('division').annotate(total_division=Count('division'))
+        user_status = User.objects.filter(is_active=True).values('status_employee').annotate(total_status=Count('status_employee'))
+        employee_division = []
+        for d in divisi:
+            count = next((item['total_division'] for item in user_divisi if item['division'] == d.division), 0)
+            employee_division.append({
+                'id': d.id,
+                'name': d.division, 
+                'total_users': count
+            })
+        
+        jumlah_hari_kerja = 0
+        for bulan in range(1, 13):
+            for hari in range(1, calendar.monthrange(year, bulan)[1] + 1):
+                tanggal = date(year, bulan, hari)
+                if tanggal.weekday() < 5:
+                    jumlah_hari_kerja += 1
+        calendar_dash = CalendarDashHRD.objects.filter(years=year).count()
+        if calendar_dash:
+            jumlah_hari_kerja = jumlah_hari_kerja - calendar_dash
+        presence = PresenceEmployee.objects.filter(working_date__year=year, start_from__isnull=False)
+        user_count = presence.values('employee').distinct().count()
+        presentase = (jumlah_hari_kerja * user_count)/presence.count()
+
+        result = {
+            'list_birthday' : srz_birthday.data,
+            'list_contract' : srz_contract.data,
+            'list_divisi' : employee_division,
+            'list_roles' : user_status,
+            'total_active' : User.objects.filter(is_active=True).count(),
+            'total_inactive' : User.objects.filter(is_active=False).count(),
+            'total_hari' : jumlah_hari_kerja,
+            'presentase' : presentase,
+        }
         
         return Response(result)
 

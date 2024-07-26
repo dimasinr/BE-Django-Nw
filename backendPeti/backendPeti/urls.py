@@ -32,6 +32,7 @@ from presenceEmployee.api.views import (
     StatistikPresenceEmployeePerMonth,
     TopPresenceAPIView,
     PresenceStatistikUser,
+    GeneralAPIDashboard,
     StatistikPresenceInMonth,
     StatistikSubmissionEmployeeInMonth,
     PresenceWFHGenerate, PresenceLocked, PresenceAnalysisEmployee
@@ -111,6 +112,8 @@ urlpatterns = (
              StatistikPresenceEmployeePerMonth.as_view()),
         path('api/dashboard/employee-statistik/<int:month>/<int:year>/',
              PresenceStatistikUser.as_view()),
+        path('api/dashboard/general/<int:year>/',
+             GeneralAPIDashboard.as_view()),
 
         path('api/submission/', include('submisssion.api.urls')),
         path('api/submission/calendar', CalendarSubmissionView.as_view()),
