@@ -335,8 +335,9 @@ class GeneralAPIDashboard(APIView):
         if calendar_dash:
             jumlah_hari_kerja = jumlah_hari_kerja - calendar_dash
         presence = PresenceEmployee.objects.filter(working_date__year=year, start_from__isnull=False)
-        user_count = presence.values('employee').distinct().count()
-        presentase = (jumlah_hari_kerja * user_count)/presence.count()
+        user_count = presence.values_list('employee').distinct()
+        pres_count = presence.filter(employee__in=user_count).count()
+        presentase = (pres_count/(jumlah_hari_kerja * user_count.count()))*100
 
         result = {
             'list_birthday' : srz_birthday.data,
