@@ -488,7 +488,7 @@ class StatistikPresenceEmployeePerMonth(APIView):
 
         user_attendance = (
             PresenceEmployee.objects
-            .filter(working_date__year=year, working_date__month=month, working_hour__isnull=False)
+            .filter(working_date__year=year, working_date__month=bulan, working_hour__isnull=False)
             .values('employee__name')
             .annotate(total_attendance=Count('id'))
             .order_by('total_attendance')
