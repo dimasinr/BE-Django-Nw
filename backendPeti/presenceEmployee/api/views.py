@@ -486,8 +486,22 @@ class StatistikPresenceEmployeePerMonth(APIView):
             jam_efektif = count_day * 900
         # create_log(action="get", message=f"logged {user_log.name}")
 
+        user_attendance = (
+            PresenceEmployee.objects
+            .filter(working_date__year=year, working_date__month=month, working_hour__isnull=False)
+            .values('employee__name')
+            .annotate(total_attendance=Count('id'))
+            .order_by('total_attendance')
+        )
+        
+        result_monthly = [
+            {item['employee__name']: item['total_attendance']}
+            for item in user_attendance
+        ]
+
         res = {
-            'data' : result,
+            'annual' : result,
+            'monthly' : result_monthly,
             'total_presence' : count_day,
             'total_workhour' : total_hour_working,
             'jk_efektif' : jam_efektif,
