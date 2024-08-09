@@ -108,18 +108,19 @@ TEMPLATES = [
 
 # WSGI_APPLICATION = 'backendPeti.wsgi.application'
 
-CORS_ORIGIN_WHITELIST = [
-    # "http://hrd.localhost:3000",
-    # "http://admin.localhost:3000",
-    # "http://app.localhost:3000",
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:5173",
-    "https://sdm-app.netlify.app",
-    "https://sdm.nawastratechnology.com"
-]
-# CORS_ORIGIN_WHITELIST = ['*']
+# CORS_ORIGIN_WHITELIST = [
+#     # "http://hrd.localhost:3000",
+#     # "http://admin.localhost:3000",
+#     # "http://app.localhost:3000",
+#     "http://localhost:3000",
+#     "http://localhost:5173",
+#     "http://127.0.0.1:3000",
+#     "http://127.0.0.1:5173",
+#     "https://sdm-app.netlify.app",
+#     "https://sdm.nawastratechnology.com",
+#     "https://app.nawastratechnology.com"
+# ]
+CORS_ORIGIN_WHITELIST = ['*']
 # 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
