@@ -291,17 +291,11 @@ class PresenceStatistikUser(APIView):
 
 class GeneralAPIDashboard(APIView):
     def get(self, request, year, *args, **kwargs):
-        today = datetime.now()
+        today = datetime.now()        
+        user_log = self.request.user
         current_month = today.month
         month = request.query_params.get('month', current_month)
 
-        user_attendance = (
-            PresenceEmployee.objects
-            .filter(working_date__year=year, working_hour__isnull=False)
-            .values('employee__name')
-            .annotate(total_attendance=Count('id'))
-            .order_by('total_attendance')
-        )
         user_birthday = User.objects.filter(birth_date__month=month, is_active=True).order_by('birth_date__day')
         
         srz_birthday = UserBirthdaySerializers(user_birthday, many=True)
@@ -341,6 +335,60 @@ class GeneralAPIDashboard(APIView):
             presentase = (pres_count/(jumlah_hari_kerja * user_count.count()))*100
         else:
             presentase = 0.00
+
+        if user_log.roles == 'hrd':
+            presence_data = PresenceEmployee.objects.all().filter(working_date__year=year)
+        else:
+            presence_data = PresenceEmployee.objects.all().filter(working_date__year=year, employee=user_log.pk)
+
+        result = {
+            month_abbr: {
+                "tidak masuk": 0,
+                "sakit": 0,
+                "izin": 0,
+                "cuti": 0,
+                "wfh": 0,
+                "presence": 0 
+            } for month_abbr in calendar.month_abbr[1:]
+        }
+
+        total_hour_working = 0
+        sisa_cuti = 0
+        
+        for presence in presence_data:
+            month = calendar.month_abbr[presence.working_date.month]  
+            ket = presence.ket
+            if presence.start_from is not None and presence.working_hour is not None:
+                value = total_hour_working + presence.working_hour
+                total_dua_bel = last_digit(presence.working_hour) + last_digit(total_hour_working)
+                if total_dua_bel > 59:
+                    value += 40
+                total_hour_working = value
+
+            
+            if ket in result[month]:
+                result[month][ket] += 1
+
+            if presence.start_from is not None:
+                result[month]['presence'] += 1
+
+        user_attendance = (
+            PresenceEmployee.objects
+            .filter(working_date__year=year, working_date__month=month, working_hour__isnull=False)
+            .values('employee__name')
+            .annotate(total_attendance=Count('id'))
+            .order_by('total_attendance')
+        )
+        print("month : ", month)
+
+        for x in user_attendance:
+            print(x)
+        
+        result_monthly = [
+            {item['employee__name']: item['total_attendance']}
+            for item in user_attendance
+        ]
+
         result = {
             'list_birthday' : srz_birthday.data,
             'list_contract' : srz_contract.data,
@@ -350,6 +398,8 @@ class GeneralAPIDashboard(APIView):
             'total_inactive' : User.objects.filter(is_active=False).count(),
             'total_hari' : jumlah_hari_kerja,
             'presentase' : presentase,
+            'annual' : result,
+            'monthly' : result_monthly
         }
         
         return Response(result)
