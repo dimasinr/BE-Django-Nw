@@ -291,19 +291,33 @@ class PresenceStatistikUser(APIView):
 
 class GeneralAPIDashboard(APIView):
     def get(self, request, year, *args, **kwargs):
-        today = datetime.now()        
+        today = datetime.now()
         user_log = self.request.user
         current_month = today.month
         month = request.query_params.get('month', current_month)
 
-        user_birthday = User.objects.filter(birth_date__month=month, is_active=True).order_by('birth_date__day')
+        user_attendance = (
+            PresenceEmployee.objects
+            .filter(working_date__year=year, working_date__month=month, working_hour__isnull=False)
+            .values('employee__name')
+            .annotate(total_attendance=Count('id'))
+            .order_by('total_attendance')
+        )
         
+        if isinstance(month, str):
+            # Convert string month to a number (e.g., 'Mar' -> 3)
+            if month in calendar.month_abbr:
+                month = list(calendar.month_abbr).index(month)
+            elif month in calendar.month_name:
+                month = list(calendar.month_name).index(month)
+        
+        user_birthday = User.objects.filter(birth_date__month=month, is_active=True).order_by('birth_date__day')
         srz_birthday = UserBirthdaySerializers(user_birthday, many=True)
 
         previous_month = (current_month - 1) if current_month != 1 else 12
         next_month = (current_month + 1) if current_month != 12 else 1
         
-        user_contract = User.objects.filter( contract_end__month__range=(previous_month, next_month), contract_end__year=year, is_active=True)
+        user_contract = User.objects.filter(contract_end__month__range=(previous_month, next_month), contract_end__year=year, is_active=True)
         srz_contract = UserContractSerializers(user_contract, many=True)
 
         divisi = UserDivision.objects.all()
@@ -315,7 +329,7 @@ class GeneralAPIDashboard(APIView):
             count = next((item['total_division'] for item in user_divisi if item['division'] == d.division), 0)
             employee_division.append({
                 'id': d.id,
-                'name': d.division, 
+                'name': d.division,
                 'total_users': count
             })
         
@@ -348,7 +362,7 @@ class GeneralAPIDashboard(APIView):
                 "izin": 0,
                 "cuti": 0,
                 "wfh": 0,
-                "presence": 0 
+                "presence": 0
             } for month_abbr in calendar.month_abbr[1:]
         }
 
@@ -365,24 +379,11 @@ class GeneralAPIDashboard(APIView):
                     value += 40
                 total_hour_working = value
 
-            
             if ket in result[month]:
                 result[month][ket] += 1
 
             if presence.start_from is not None:
                 result[month]['presence'] += 1
-
-        user_attendance = (
-            PresenceEmployee.objects
-            .filter(working_date__year=year, working_date__month=month, working_hour__isnull=False)
-            .values('employee__name')
-            .annotate(total_attendance=Count('id'))
-            .order_by('total_attendance')
-        )
-        print("month : ", month)
-
-        for x in user_attendance:
-            print(x)
         
         result_monthly = [
             {item['employee__name']: item['total_attendance']}
