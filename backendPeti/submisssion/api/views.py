@@ -146,7 +146,7 @@ class SubmissionAPIViewID(viewsets.ModelViewSet):
         end_date = self.request.query_params.get('end_date', None)
 
         if employee_name:
-            petitions=petitions.filter(employee__name__contains=employee_name)
+            petitions=petitions.filter(employee__name__icontains=employee_name)
         if end_date:
             petitions=petitions.filter(end_date__contains=end_date)
         if start_date:
