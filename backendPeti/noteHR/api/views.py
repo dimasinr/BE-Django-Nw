@@ -286,13 +286,13 @@ def post_delete_notes(request):
                     create_log(action="delete", message=f"Notes with type {notes.type_notes} deleted by {request.user.roles}. Cuti for user {user.name} increased by 1.")
                 presencess.delete()
             except PresenceEmployee.DoesNotExist:
-                return Response({"message": "Presence record not found"}, status=404)
+                pass
         else:
             try:
                 presencess = PresenceEmployee.objects.get(employee=user, working_date=notes.date_note, start_from=900, end_from=1700)
                 presencess.delete()
             except PresenceEmployee.DoesNotExist:
-                return Response({"message": "Presence record not found"}, status=404)
+                pass
 
     notes.delete()
     response_message = {"message": "Notes has been deleted"}
