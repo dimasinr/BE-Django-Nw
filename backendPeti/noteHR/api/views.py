@@ -169,11 +169,11 @@ class NotesAPIVIEWID(viewsets.ModelViewSet):
        
         # if note_object.type_notes != data.get('type_notes'):
         if data.get('type_notes') != 'masuk':
-            presence_emp = PresenceEmployee.objects.get(employee=employee, working_date=note_object.date_note, ket=note_object.type_notes)
+            presence_emp = PresenceEmployee.objects.filter(employee=employee, working_date=note_object.date_note, ket=note_object.type_notes).first()
             if note_object.type_notes == 'masuk':
                 presence_emp.delete()
                 PresenceEmployee.objects.create(employee=employee, working_date=note_object.date_note, ket=note_object.type_notes)
-            presence_emp = PresenceEmployee.objects.get(employee=employee, working_date=note_object.date_note, ket=note_object.type_notes)
+            presence_emp = PresenceEmployee.objects.filter(employee=employee, working_date=note_object.date_note, ket=note_object.type_notes).first()
             presence_emp.ket = data.get('type_notes')
             presence_emp.working_date = date
             if note_object.type_notes == 'cuti':
@@ -189,25 +189,13 @@ class NotesAPIVIEWID(viewsets.ModelViewSet):
                 employee.sisa_cuti += 1
                 employee.save()
                 create_log(message=f"cuti bertambah 1 untuk user {employee.name} karena {request.user.roles} mengubah tipe catatan menjadi {data.get('type_notes')} dari {note_object.type_notes}", action="update")
-            presence_emp = PresenceEmployee.objects.get(employee=employee, working_date=note_object.date_note, ket=note_object.type_notes)
+            presence_emp = PresenceEmployee.objects.filter(employee=employee, working_date=note_object.date_note, ket=note_object.type_notes).first()
             presence_emp.ket = data.get('type_notes')
             presence_emp.start_from = 900
             presence_emp.end_from = 1700
             presence_emp.working_date=date
         presence_emp.save()
         
-        # if presence_emp:
-        #     if data.get('type_notes') != 'cuti':
-        #         presence_emp.ket = data.get('type_notes')
-
-        #         if note_object.type_notes == 'cuti':
-        #             employee.sisa_cuti += 1
-        #             employee.save()
-        #     else:
-        #         presence_emp.ket = data.get('type_notes')
-        #         employee.sisa_cuti -= 1
-        #         employee.save()
-      
         note_object.type_notes = data.get('type_notes')
         note_object.date_note = data.get('date_note')
 
@@ -274,25 +262,37 @@ def get_cuti(request, year, emp_id):
 def post_delete_notes(request):
     notes_data = request.data
     notes_id = notes_data.get("notes_id")
-    # date_note = notes_data.get("date_note")
-    # notes = notes_data.get("notes")
-    # type_notes = notes_data.get("type_notes")
 
-    notes = NotesApp.objects.filter(id=notes_id)
+    if not notes_id:
+        return Response({"message": "Notes ID is required"}, status=400)
 
-    user = get_object_or_404(User, id=notes.employee)
+    try:
+        notes = NotesApp.objects.get(id=notes_id)
+    except NotesApp.DoesNotExist:
+        return Response({"message": "Notes not found"}, status=404)
 
-    if notes.ket != 'catatan':
-        if notes.ket != 'masuk':
-            presencess = PresenceEmployee.objects.get(employee=user, working_date=notes.date_note, ket=notes.ket)
-            if notes.ket == 'cuti':
-                user.sisa_cuti += 1
-                user.save()
-                create_log(action="delete", message=f"notes dengan type {notes.ket} di delete oleh {request.user.roles}, cuti user {user.name} bertambah 1")
-            presencess.delete()
+    try:
+        user = User.objects.get(id=notes.employee.id)
+    except User.DoesNotExist:
+        return Response({"message": "User not found"}, status=404)
+
+    if notes.type_notes != 'catatan':
+        if notes.type_notes != 'masuk':
+            try:
+                presencess = PresenceEmployee.objects.get(employee=user, working_date=notes.date_note, ket=notes.type_notes)
+                if notes.type_notes == 'cuti':
+                    user.sisa_cuti += 1
+                    user.save()
+                    create_log(action="delete", message=f"Notes with type {notes.type_notes} deleted by {request.user.roles}. Cuti for user {user.name} increased by 1.")
+                presencess.delete()
+            except PresenceEmployee.DoesNotExist:
+                return Response({"message": "Presence record not found"}, status=404)
         else:
-            presencess = PresenceEmployee.objects.get(employee=user, working_date=notes.date_note, start_from=900, end_from=1700)
-            presencess.delete()
+            try:
+                presencess = PresenceEmployee.objects.get(employee=user, working_date=notes.date_note, start_from=900, end_from=1700)
+                presencess.delete()
+            except PresenceEmployee.DoesNotExist:
+                return Response({"message": "Presence record not found"}, status=404)
 
     notes.delete()
     response_message = {"message": "Notes has been deleted"}
