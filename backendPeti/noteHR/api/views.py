@@ -64,32 +64,33 @@ class NotesAPIVIEWID(viewsets.ModelViewSet):
         logged_user = self.request.user
         if(logged_user.roles == 'hrd'):
             querySet = NotesApp.objects.all().order_by('-id')
-        
             employee_name = self.request.query_params.get('employee_name', None)
-            employee_id = self.request.query_params.get('employee_id', None)
-            notes = self.request.query_params.get('notes', None)
-            date_note = self.request.query_params.get('date_note', None)
-            hari = self.request.query_params.get('hari', None)
-            bulan = self.request.query_params.get('bulan', None)
-            tahun = self.request.query_params.get('tahun', None)
-
-            if employee_name:
-                querySet=querySet.filter(employee__name__icontains=employee_name)
-            if employee_id:
-                querySet=querySet.filter(employee__id__contains=employee_id)
-            if date_note:
-                querySet=querySet.filter(date_note=date_note)
-            if notes:
-                querySet=querySet.filter(notes=notes)
-            if hari:
-                querySet=querySet.filter(hari=hari)
-            if bulan:
-                querySet=querySet.filter(bulan=bulan)
-            if tahun:
-                querySet=querySet.filter(tahun=tahun)
         else:
-            # querySet = NotesApp.objects.all().filter(employee=logged_user.pk, type_notes='cuti').order_by('-id')
             querySet = NotesApp.objects.filter(employee=logged_user.pk).exclude(type_notes__in=['masuk', 'catatan']).order_by('-id')
+        employee_id = self.request.query_params.get('employee_id', None)
+        notes = self.request.query_params.get('notes', None)
+        date_note = self.request.query_params.get('date_note', None)
+        hari = self.request.query_params.get('hari', None)
+        type_notes = self.request.query_params.get('type_notes', None)
+        bulan = self.request.query_params.get('bulan', None)
+        tahun = self.request.query_params.get('tahun', None)
+
+        if employee_name:
+            querySet=querySet.filter(employee__name__icontains=employee_name)
+        if employee_id:
+            querySet=querySet.filter(employee__id=employee_id)
+        if date_note:
+            querySet=querySet.filter(date_note=date_note)
+        if notes:
+            querySet=querySet.filter(notes=notes)
+        if hari:
+            querySet=querySet.filter(hari=hari)
+        if bulan:
+            querySet=querySet.filter(bulan=bulan)
+        if tahun:
+            querySet=querySet.filter(tahun=tahun)
+        if type_notes:
+            querySet=querySet.filter(type_notes=type_notes)
 
         # serializer = NotesSerializer(querySet, many=True)
 
