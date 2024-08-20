@@ -133,7 +133,7 @@ class NotesAPIVIEWID(viewsets.ModelViewSet):
                                                        end_from=1700, start_from=900, ket=noted
                                                        )
                 new_presen.save()
-            elif(typ == 'sakit' or typ == 'tidak masuk' or typ == 'izin'):
+            elif(typ == 'sakit' or typ == 'sakit_tsk' or typ == 'sakit_sk' or typ == 'tidak masuk' or typ == 'izin'):
                 new_presen = PresenceEmployee.objects.create(employee=User.objects.get(id=notes_data["employee"]), working_date=date,
                                                        end_from=None, start_from=None, ket=typ
                                                        )
@@ -157,54 +157,74 @@ class NotesAPIVIEWID(viewsets.ModelViewSet):
             return Response({"error" : "Please fill all fields"}, status=status.HTTP_400_BAD_REQUEST)
     
     def update(self, request, *args, **kwargs):
-        note_object = self.get_object()
-        data = request.data
+        try:
+            note_object = self.get_object()
+            data = request.data
 
-        employee = User.objects.get(id=data.get("employee"))
-        print(note_object.type_notes)
-        print(data.get('type_notes'))
-        note_object.employee = employee
-        note_object.notes = data.get('notes')
-        date = datetime.strptime(data.get('date_note'), '%Y-%m-%d').date()
-       
-        # if note_object.type_notes != data.get('type_notes'):
-        if data.get('type_notes') != 'masuk':
-            presence_emp = PresenceEmployee.objects.filter(employee=employee, working_date=note_object.date_note, ket=note_object.type_notes).first()
-            if note_object.type_notes == 'masuk':
-                presence_emp.delete()
-                PresenceEmployee.objects.create(employee=employee, working_date=note_object.date_note, ket=note_object.type_notes)
-            presence_emp = PresenceEmployee.objects.filter(employee=employee, working_date=note_object.date_note, ket=note_object.type_notes).first()
-            presence_emp.ket = data.get('type_notes')
-            presence_emp.working_date = date
-            if note_object.type_notes == 'cuti':
-                employee.sisa_cuti += 1
-                employee.save()
-                create_log(message=f"cuti bertambah 1 untuk user {employee.name} karena {request.user.roles} mengubah tipe catatan menjadi {data.get('type_notes')} dari {note_object.type_notes}", action="update")
-            elif data.get('type_notes') == 'cuti':
-                employee.sisa_cuti -= 1
-                employee.save()
-                create_log(message=f"cuti berkurang 1 untuk user {employee.name} karena {request.user.roles} mengubah tipe catatan menjadi {data.get('type_notes')} dari {note_object.type_notes}", action="update")
-        else:
-            if note_object.type_notes == 'cuti':
-                employee.sisa_cuti += 1
-                employee.save()
-                create_log(message=f"cuti bertambah 1 untuk user {employee.name} karena {request.user.roles} mengubah tipe catatan menjadi {data.get('type_notes')} dari {note_object.type_notes}", action="update")
-            presence_emp = PresenceEmployee.objects.filter(employee=employee, working_date=note_object.date_note, ket=note_object.type_notes).first()
-            presence_emp.ket = data.get('type_notes')
-            presence_emp.start_from = 900
-            presence_emp.end_from = 1700
-            presence_emp.working_date=date
-        presence_emp.save()
-        
-        note_object.type_notes = data.get('type_notes')
-        note_object.date_note = data.get('date_note')
+            # Retrieve and update employee
+            try:
+                employee = User.objects.get(id=data.get("employee"))
+            except User.DoesNotExist:
+                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        note_object.save()
+            note_object.employee = employee
+            note_object.notes = data.get('notes')
 
-        serializer = NotesSerializer(note_object)
+            # Parse and validate date
+            try:
+                date = datetime.strptime(data.get('date_note'), '%Y-%m-%d').date()
+            except ValueError:
+                return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(serializer.data)
+            current_type = note_object.type_notes
+            new_type = data.get('type_notes')
 
+            # Check if type_notes has changed
+            if current_type != new_type:
+                presence_emp = PresenceEmployee.objects.filter(
+                    employee=employee, 
+                    working_date=note_object.date_note, 
+                    ket=current_type
+                ).first()
+                
+                # Handle presence updates
+                if new_type == 'masuk':
+                    if presence_emp:
+                        presence_emp.delete()
+                    PresenceEmployee.objects.create(
+                        employee=employee, 
+                        working_date=date, 
+                        ket=new_type
+                    )
+                else:
+                    if presence_emp:
+                        presence_emp.ket = new_type
+                        presence_emp.working_date = date
+                        presence_emp.save()
+                    else:
+                        pass
+
+                    if current_type == 'cuti':
+                        employee.sisa_cuti += 1
+                    if new_type == 'cuti':
+                        employee.sisa_cuti -= 1
+                    
+                    employee.save()
+
+                    # Log the change
+                    create_log(message=f"cuti {'berkurang' if new_type == 'cuti' else 'bertambah'} 1 untuk user {employee.name} karena {request.user.roles} mengubah tipe catatan menjadi {new_type} dari {current_type}", action="update")
+
+            # Update the note_object
+            note_object.type_notes = new_type
+            note_object.date_note = data.get('date_note')
+            note_object.save()
+
+            # Serialize and return response
+            serializer = NotesSerializer(note_object)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def destroy(self, request, *args, **kwargs):
         # logedin_user = request.user.roles
