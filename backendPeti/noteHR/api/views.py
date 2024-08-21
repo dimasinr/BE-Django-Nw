@@ -66,7 +66,7 @@ class NotesAPIVIEWID(viewsets.ModelViewSet):
             querySet = NotesApp.objects.all().order_by('-id')
             employee_name = self.request.query_params.get('employee_name', None)
         else:
-            querySet = NotesApp.objects.filter(employee=logged_user.pk).exclude(type_notes__in=['masuk', 'catatan']).order_by('-id')
+            querySet = NotesApp.objects.filter(employee=logged_user.pk).order_by('-id')
         employee_id = self.request.query_params.get('employee_id', None)
         notes = self.request.query_params.get('notes', None)
         date_note = self.request.query_params.get('date_note', None)
