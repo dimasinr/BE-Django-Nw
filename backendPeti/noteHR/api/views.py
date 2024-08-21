@@ -65,8 +65,10 @@ class NotesAPIVIEWID(viewsets.ModelViewSet):
         if(logged_user.roles == 'hrd'):
             querySet = NotesApp.objects.all().order_by('-id')
             employee_name = self.request.query_params.get('employee_name', None)
+            if employee_name:
+                querySet=querySet.filter(employee__name__icontains=employee_name)
         else:
-            querySet = NotesApp.objects.filter(employee=logged_user.pk).order_by('-id')
+            querySet = NotesApp.objects.filter(employee=logged_user.pk).exclude(type_notes__in=['masuk', 'catatan']).order_by('-id')
         employee_id = self.request.query_params.get('employee_id', None)
         notes = self.request.query_params.get('notes', None)
         date_note = self.request.query_params.get('date_note', None)
@@ -74,9 +76,7 @@ class NotesAPIVIEWID(viewsets.ModelViewSet):
         type_notes = self.request.query_params.get('type_notes', None)
         bulan = self.request.query_params.get('bulan', None)
         tahun = self.request.query_params.get('tahun', None)
-
-        if employee_name:
-            querySet=querySet.filter(employee__name__icontains=employee_name)
+       
         if employee_id:
             querySet=querySet.filter(employee__id=employee_id)
         if date_note:
