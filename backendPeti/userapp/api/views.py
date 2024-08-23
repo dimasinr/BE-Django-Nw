@@ -136,6 +136,13 @@ class UserDivisionView(viewsets.ModelViewSet):
         division = UserDivision.objects.all()
         return division
 
+class ListDivision(APIView):
+    serializer_class = UserDivisionSerializers
+
+    def get(self, request):
+        division = UserDivision.objects.all()
+        srz = UserDivisionSerializers(division, many=True)
+        return Response(srz.data)
 
 class UserTotal(APIView):
     serializer_class = UserTotalDataIOSerializers

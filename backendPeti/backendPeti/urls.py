@@ -20,7 +20,8 @@ from userapp.api.views import (
     UserWorkHourAPIView,
     EmployeeContractEnd,
     ChangePasswordAPIView,
-    CertificatePieChartAPIView
+    CertificatePieChartAPIView,
+    ListDivision
 )
 from calendarDash.api.views import WeekTotals, post_delete_calendar
 from presenceEmployee.api.views import (
@@ -70,6 +71,7 @@ urlpatterns = (
         path('users/employee/change-password/',
              ChangePasswordAPIView.as_view()),
         path('employee/chart-pendidikan/', CertificatePieChartAPIView.as_view()),
+        path('employee/list-division/', ListDivision.as_view()),
 
         path('cuti/', include('saldoCuti.api.urls')),
 
