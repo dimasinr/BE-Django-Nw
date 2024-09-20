@@ -141,26 +141,24 @@ class WeekTotals(APIView):
 def post_delete_calendar(request):
     calendarData = request.data
     if calendarData:
-        titleday = calendarData.get("title_day")
-        typeday = calendarData.get("type_day")
-        date_str = calendarData.get("date")
-        date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        calendar_id = calendarData.get("calendar_id")
+        calendar = CalendarDashHRD.objects.filter(id=calendar_id).first()
+        if calendar is None:
+            return Response({"message" : "Tidak ada data calendar tersebut"}, status=status.HTTP_404_NOT_FOUND) 
 
-        if date.weekday() >= 5:
+        if calendar.date.weekday() >= 5:
             dayof = 'weekend'
         else:
             dayof = 'weekday'
-
-        calendar_del = CalendarDashHRD.objects.get(title_day=titleday, type_day=typeday, date=date, day_of=dayof)
-        calendar_del.delete()
         if dayof == 'weekday':
             users = User.objects.all().filter(is_active=True)
             for user in users:
-                presen = PresenceEmployee.objects.filter(employee=user, working_date=date, ket=titleday)
+                presen = PresenceEmployee.objects.filter(employee=user, working_date=calendar.date, ket=calendar.title_day)
                 if presen.exists():
                     presen.delete()
                 else:
                     print("tidak ada data presensi")
+        calendar.delete()
         response_message = Response({"message" : "Data berhasil dihapus"}, status=status.HTTP_200_OK)  
     else:
         response_message = Response({"message" : "Tidak dapat menambahkan data dikarenakan tidak mengisi semua data"}, status=status.HTTP_400_BAD_REQUEST)  
