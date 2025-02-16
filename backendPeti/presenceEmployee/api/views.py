@@ -864,7 +864,7 @@ class PresenceAnalysisOn(APIView):
         jam_efektif = count_day*800
         if employee == 6 or users.id == 6:
             jam_efektif = count_day*900
-        
+        print("total hour woriking ", total_hour_working)
         summary_hour = formula_sum_actual(total_hour_working, jam_efektif)
 
         context = {

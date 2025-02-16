@@ -69,6 +69,7 @@ class NotesAPIVIEWID(viewsets.ModelViewSet):
                 querySet=querySet.filter(employee__name__icontains=employee_name)
         else:
             querySet = NotesApp.objects.filter(employee=logged_user.pk).exclude(type_notes__in=['masuk', 'catatan']).order_by('-id')
+        print(logged_user.roles)
         employee_id = self.request.query_params.get('employee_id', None)
         notes = self.request.query_params.get('notes', None)
         date_note = self.request.query_params.get('date_note', None)
@@ -76,6 +77,7 @@ class NotesAPIVIEWID(viewsets.ModelViewSet):
         type_notes = self.request.query_params.get('type_notes', None)
         bulan = self.request.query_params.get('bulan', None)
         tahun = self.request.query_params.get('tahun', None)
+        print(tahun)
        
         if employee_id:
             querySet=querySet.filter(employee__id=employee_id)
